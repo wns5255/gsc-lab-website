@@ -1,0 +1,491 @@
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+
+        <!-- Babylon.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
+        <script src="https://cdn.babylonjs.com/recast.js"></script>
+        <script src="https://cdn.babylonjs.com/ammo.js"></script>
+        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+        <script src="https://cdn.babylonjs.com/cannon.js"></script>
+        <script src="https://cdn.babylonjs.com/Oimo.js"></script>
+        <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://cdn.babylonjs.com/addons/babylonjs.addons.min.js"></script>
+        <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+        <style>
+            html,
+            body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+
+            #canvasZone {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+        <script>
+                    var canvas = document.getElementById("renderCanvas");
+
+                    var startRenderLoop = function (engine, canvas) {
+                        engine.runRenderLoop(function () {
+                            if (sceneToRender && sceneToRender.activeCamera) {
+                                sceneToRender.render();
+                            }
+                        });
+                    }
+
+                    var engine = null;
+                    var scene = null;
+                    var sceneToRender = null;
+                    var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+                    // let animationRunning = true; // 랜덤 이동을 제어하는 변수
+
+                    // function moveSpritesRandomly(sprites, scene) {
+                    //     animationRunning = true; // 랜덤 이동 활성화
+
+                    //     sprites.forEach((sprite) => {
+                    //         sprite.originalPosition = sprite.position.clone(); // 원래 위치 저장
+                    //         sprite.randomOffset = new BABYLON.Vector3(
+                    //             (Math.random() - 0.5) * 1000,  // X축 랜덤 이동
+                    //             (Math.random() - 0.5) * 1000,  // Y축 랜덤 이동
+                    //             (Math.random() - 0.5) * 1000   // Z축 랜덤 이동
+                    //         );
+                    //     });
+
+                    //     let time = 0;
+
+                    //     scene.onBeforeRenderObservable.add(() => {
+                    //         if (!animationRunning) return; // 🔥 멈추기 조건 추가!
+
+                    //         time += scene.getEngine().getDeltaTime() * 0.001;  // 시간 업데이트
+
+                    //         sprites.forEach((sprite) => {
+                    //             // 랜덤 이동 (부드럽게 움직이도록 sin 함수 활용)
+                    //             sprite.position.x = sprite.originalPosition.x + sprite.randomOffset.x * Math.sin(time);
+                    //             sprite.position.y = sprite.originalPosition.y + sprite.randomOffset.y * Math.cos(time);
+                    //             sprite.position.z = sprite.originalPosition.z + sprite.randomOffset.z * Math.sin(time * 0.5);
+                    //         });
+                    //     });
+
+                    //     // 5초 후 원래 위치로 복귀
+                    //     setTimeout(() => {
+                    //         restoreSprites(sprites, scene);
+                    //     }, 7000);
+                    // }
+
+                    // function restoreSprites(sprites, scene) {
+                    //     animationRunning = false; // 🔥 랜덤 이동 중지!
+                        
+                    //     sprites.forEach((sprite) => {
+                    //         let animation = new BABYLON.Animation(
+                    //             "spriteReturn",
+                    //             "position",
+                    //             60,
+                    //             BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+                    //             BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+                    //         );
+
+                    //         let keyFrames = [];
+                    //         keyFrames.push({ frame: 0, value: sprite.position.clone() });
+                    //         keyFrames.push({ frame: 60, value: sprite.originalPosition.clone() });
+
+                    //         animation.setKeys(keyFrames);
+                    //         sprite.animations = [animation];
+                    //         scene.beginAnimation(sprite, 0, 60, false);
+                    //     });
+
+                    //     console.log("🎯 한자 스프라이트 원래 위치로 복귀 중...");
+
+                    //     // 🔥 3초 동안 멈춘 후 다시 랜덤 이동 시작!
+                    //     setTimeout(() => {
+                    //         console.log("🔄 다시 랜덤 이동 시작!");
+                    //         moveSpritesRandomly(sprites, scene);
+                    //     }, 10000);  // 🛑 3초 동안 멈추기 (원래 위치에서 대기)
+                    // }
+
+                    // function createHanziSprite(scene, x, y, z) {
+                    //     let spriteManager = new BABYLON.SpriteManager("hanziManager", "https://i.imgur.com/3x0HfL7.png", 1, { width: 3000, height: 3000 }, scene);
+                    //     let hanziSprite = new BABYLON.Sprite("hanzi", spriteManager);
+                    //     hanziSprite.position = new BABYLON.Vector3(x,y,z);
+                    //     return hanziSprite;
+
+                    // }
+
+                    // var delayCreateScene = function () {
+                    //     var scene = new BABYLON.Scene(engine);
+                    //     let sprites = [];
+                    //     scene.clearColor = new BABYLON.Color4(1, 1, 1, 1); // 배경 흰색 설정
+
+                    //     // // 🎥 🔥 ArcRotateCamera 추가 (사용자가 마우스로 회전 가능)
+                    //     // var camera = new BABYLON.ArcRotateCamera("arcCamera", Math.PI / 2, Math.PI / 3, 1500, new BABYLON.Vector3(0, 0, 0), scene);
+                    //     // camera.attachControl(canvas, true); // 마우스 조작 활성화
+
+                    //     // // 🎥 FreeCamera를 사용하고 싶다면 아래 코드로 변경!
+                    //     var camera = new BABYLON.FreeCamera("freeCamera", new BABYLON.Vector3(0, 200, -600), scene);
+                    //     camera.setTarget(BABYLON.Vector3.Zero());
+                    //     camera.attachControl(canvas, true);
+
+                    //     BABYLON.SceneLoader.ImportMesh("","ply/","Untitled.glb", scene, function (meshes) {          
+                    //         meshes[0].setEnabled(false);
+                    //         var pcs = new BABYLON.PointsCloudSystem("pcs", 1, scene);
+                    //         // pcs.addSurfacePoints(meshes[1], 500, BABYLON.PointColor.None, 0);
+                    //         meshes.slice(1, 30).forEach(mesh => {
+                    //             // meshe.scaling = new BABYLON.Vector3(20, 20, 20); // 스케일 조정 (100 → 10)
+                    //             pcs.addSurfacePoints(mesh, 100, BABYLON.PointColor.None, 0);
+                    //         });
+
+
+                    //         pcs.buildMeshAsync().then(() => {
+                    //             pcs.particles.forEach((particle) => {
+                    //                 const hanziSprite = createHanziSprite(scene, particle.position.x, particle.position.y, particle.position.z);
+                    //                 hanziSprite.width = 40;
+                    //                 hanziSprite.height = 40;
+                    //                 sprites.push(hanziSprite);
+                    //             });
+
+                    //             pcs.mesh.isVisible = false; // 포인트 클라우드 숨기기
+                    //             moveSpritesRandomly(sprites, scene); // 한자 스프라이트 랜덤 이동 시작!
+                    //         });
+                    //     });
+
+                    //     return scene;
+                    // };
+
+                    // -------------------------------------------------------------------------------------------------
+
+                    let animationRunning = true;
+                    let animationObserver = null; // 중복 애니메이션 방지용 옵저버
+                    let spriteManager = null;     // 전역 스프라이트 매니저
+                    let state = "moving"; // "moving", "returning", "paused"
+                    let stateStartTime = performance.now();
+                    const hanziImages = [
+                        "text/kuk.png"
+                    ];
+                    function moveSpritesSmoothly(sprites, scene) {
+                        let targetPositions = [];
+                        let speed = 0.05; // 움직임 속도 (0.05~0.1 사이 추천)
+
+                        // 초기 랜덤 타겟 지정
+                        sprites.forEach((sprite) => {
+                            sprite.originalPosition = sprite.position.clone();
+                            sprite.targetPosition = getNewRandomPosition(sprite.originalPosition);
+                            targetPositions.push(sprite.targetPosition.clone());
+                        });
+
+                        scene.onBeforeRenderObservable.add(() => {
+                            if (!animationRunning) return;
+
+                            const now = performance.now();
+
+                            // 상태 전환 로직
+                            if (state === "moving" && now - stateStartTime > 7000) {
+                                state = "returning";
+                                stateStartTime = now;
+                                sprites.forEach((sprite) => {
+                                    sprite.targetPosition = sprite.originalPosition.clone();
+                                });
+                            }
+
+                            if (state === "returning") {
+                                let allNearOrigin = sprites.every(sprite =>
+                                    BABYLON.Vector3.Distance(sprite.position, sprite.originalPosition) < 1
+                                );
+
+                                if (allNearOrigin) {
+                                    state = "paused";
+                                    stateStartTime = now;
+                                }
+                            }
+
+                            if (state === "paused" && now - stateStartTime > 20000) {
+                                state = "moving";
+                                stateStartTime = now;
+                                sprites.forEach((sprite) => {
+                                    sprite.targetPosition = getNewRandomPosition(sprite.originalPosition);
+                                });
+                            }
+
+                            // 위치 보간 적용
+                            sprites.forEach((sprite) => {
+                                sprite.position = BABYLON.Vector3.Lerp(sprite.position, sprite.targetPosition, speed);
+                            });
+                        });
+                    }
+
+                    // 랜덤 위치 생성 함수
+                    function getNewRandomPosition(origin) {
+                        return origin.add(new BABYLON.Vector3(
+                            (Math.random() - 0.5) * 10000,
+                            (Math.random() - 0.5) * 10000,
+                            (Math.random() - 0.5) * 10000
+                        ));
+                    }
+
+                    function restoreSprites(sprites, scene) {
+                        animationRunning = false;
+
+                        let finishedCount = 0;
+
+                        sprites.forEach(sprite => {
+                            const animation = new BABYLON.Animation(
+                                "spriteReturn",
+                                "position",
+                                60,
+                                BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+                                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+                            );
+
+                            animation.setKeys([
+                                { frame: 0, value: sprite.position.clone() },
+                                { frame: 60, value: sprite.originalPosition.clone() }
+                            ]);
+
+                            sprite.animations = [animation];
+
+                            const anim = scene.beginAnimation(sprite, 0, 60, false, 1.0, () => {
+                                finishedCount++;
+                                if (finishedCount === sprites.length) {
+                                    // 모든 스프라이트 복귀 후 0.5초 대기 → 자연스럽게 재시작
+                                    setTimeout(() => {
+                                        moveSpritesRandomly(sprites, scene);
+                                    }, 500);
+                                }
+                            });
+                        });
+
+                        console.log("🎯 스프라이트 원위치 복귀 (자연스럽게 이동 재시작 예정)");
+                    }
+
+
+                    function createHanziSprite(scene, position) {
+                        const sprite = new BABYLON.Sprite("hanzi", spriteManager);
+                        sprite.position = position.clone();
+                        sprite.width = 8;
+                        sprite.height = 8;
+                        return sprite;
+                    }
+
+                    const delayCreateScene = function () {
+                        const scene = new BABYLON.Scene(engine);
+                        let sprites = [];
+                        scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
+
+                        const camera = new BABYLON.FreeCamera("freeCamera", new BABYLON.Vector3(0, 200, -600), scene);
+                        camera.setTarget(BABYLON.Vector3.Zero());
+                        camera.attachControl(canvas, true);
+
+                        // 스프라이트 매니저는 한 번만 생성
+                        spriteManager = new BABYLON.SpriteManager(
+                            "hanziManager",
+                            hanziImages[0],
+                            900000, // 예상 생성 수량 (여유 있게 설정)
+                            { width: 512, height: 512 },
+                            scene
+                        );
+
+                        BABYLON.SceneLoader.ImportMesh("", "ply/", "Untitled.glb", scene, function (meshes) {
+                            meshes[0].setEnabled(false);
+                            const pcs = new BABYLON.PointsCloudSystem("pcs", 1, scene);
+
+                            meshes.slice(1, 30).forEach(mesh => {
+                                pcs.addSurfacePoints(mesh, 30000, BABYLON.PointColor.None, 0);
+                            });
+
+                            pcs.buildMeshAsync().then(() => {
+                                pcs.particles.forEach(p => {
+                                    const sprite = createHanziSprite(scene, p.position);
+                                    sprites.push(sprite);
+                                });
+
+                                pcs.mesh.isVisible = false;
+                                moveSpritesSmoothly(sprites, scene);
+                            });
+                        });
+
+                        return scene;
+                    };
+                    // let animationRunning = true;
+                    // let animationObserver = null; // 중복 애니메이션 방지용 옵저버
+                    // let spriteManager = null;     // 전역 스프라이트 매니저
+                    // let state = "moving"; // "moving", "returning", "paused"
+                    // let stateStartTime = performance.now();
+
+                    // // 여러 개의 한자 이미지 목록
+                    // const hanziImages = [
+                    //     "text/kuk.png"
+                    // ];
+
+                    // // 랜덤한 한자 이미지 선택 함수
+                    // function getRandomHanziImage() {
+                    //     return hanziImages[Math.floor(Math.random() * hanziImages.length)];
+                    // }
+
+                    // function moveSpritesSmoothly(sprites, scene) {
+                    //     let targetPositions = [];
+                    //     let speed = 0.05; // 움직임 속도 (0.05~0.1 사이 추천)
+
+                    //     // 초기 랜덤 타겟 지정
+                    //     sprites.forEach((sprite) => {
+                    //         sprite.originalPosition = sprite.position.clone();
+                    //         sprite.targetPosition = getNewRandomPosition(sprite.originalPosition);
+                    //         targetPositions.push(sprite.targetPosition.clone());
+                    //     });
+
+                    //     scene.onBeforeRenderObservable.add(() => {
+                    //         if (!animationRunning) return;
+
+                    //         const now = performance.now();
+
+                    //         // 상태 전환 로직
+                    //         if (state === "moving" && now - stateStartTime > 7000) {
+                    //             state = "returning";
+                    //             stateStartTime = now;
+                    //             sprites.forEach((sprite) => {
+                    //                 sprite.targetPosition = sprite.originalPosition.clone();
+                    //             });
+                    //         }
+
+                    //         if (state === "returning") {
+                    //             let allNearOrigin = sprites.every(sprite =>
+                    //                 BABYLON.Vector3.Distance(sprite.position, sprite.originalPosition) < 1
+                    //             );
+
+                    //             if (allNearOrigin) {
+                    //                 state = "paused";
+                    //                 stateStartTime = now;
+                    //             }
+                    //         }
+
+                    //         if (state === "paused" && now - stateStartTime > 5000) {
+                    //             state = "moving";
+                    //             stateStartTime = now;
+                    //             sprites.forEach((sprite) => {
+                    //                 sprite.targetPosition = getNewRandomPosition(sprite.originalPosition);
+                    //             });
+                    //         }
+
+                    //         // 위치 보간 적용
+                    //         sprites.forEach((sprite) => {
+                    //             sprite.position = BABYLON.Vector3.Lerp(sprite.position, sprite.targetPosition, speed);
+                    //         });
+                    //     });
+                    // }
+
+                    // // 랜덤 위치 생성 함수
+                    // function getNewRandomPosition(origin) {
+                    //     return origin.add(new BABYLON.Vector3(
+                    //         (Math.random() - 0.5) * 10000,
+                    //         (Math.random() - 0.5) * 10000,
+                    //         (Math.random() - 0.5) * 10000
+                    //     ));
+                    // }
+
+                    // function createHanziSprite(scene, position) {
+                    //     const sprite = new BABYLON.Sprite("hanzi", spriteManager);
+                    //     sprite.position = position.clone();
+                    //     sprite.width = 20;
+                    //     sprite.height = 20;
+
+                    //     // 랜덤한 한자 이미지 적용
+                    //     spriteManager.texture = new BABYLON.Texture(getRandomHanziImage(), scene);
+
+                    //     return sprite;
+                    // }
+
+                    // const delayCreateScene = function () {
+                    //     const scene = new BABYLON.Scene(engine);
+                    //     let sprites = [];
+                    //     scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
+
+                    //     const camera = new BABYLON.FreeCamera("freeCamera", new BABYLON.Vector3(0, 200, -600), scene);
+                    //     camera.setTarget(BABYLON.Vector3.Zero());
+                    //     camera.attachControl(canvas, true);
+
+                    //     // 스프라이트 매니저 생성 (한자 이미지 중 첫 번째 이미지를 기본으로 사용)
+                    //     spriteManager = new BABYLON.SpriteManager(
+                    //         "hanziManager",
+                    //         hanziImages[0], // 첫 번째 이미지로 초기화 (개별 스프라이트에서 변경됨)
+                    //         500000, // 예상 생성 수량 (여유 있게 설정)
+                    //         { width: 512, height: 512 },
+                    //         scene
+                    //     );
+
+                    //     BABYLON.SceneLoader.ImportMesh("", "ply/", "Untitled.glb", scene, function (meshes) {
+                    //         meshes[0].setEnabled(false);
+                    //         const pcs = new BABYLON.PointsCloudSystem("pcs", 1, scene);
+
+                    //         meshes.slice(1, 30).forEach(mesh => {
+                    //             pcs.addSurfacePoints(mesh, 15000, BABYLON.PointColor.None, 0);
+                    //         });
+
+                    //         pcs.buildMeshAsync().then(() => {
+                    //             pcs.particles.forEach(p => {
+                    //                 const sprite = createHanziSprite(scene, p.position);
+                    //                 sprites.push(sprite);
+                    //             });
+
+                    //             pcs.mesh.isVisible = false;
+                    //             moveSpritesSmoothly(sprites, scene);
+                    //         });
+                    //     });
+
+                    //     return scene;
+                    // };
+
+                window.initFunction = async function() {
+                    
+                    
+                    
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    window.engine = await asyncEngineCreation();
+                    
+                    const engineOptions = window.engine.getCreationOptions?.();
+                    if (!engineOptions || engineOptions.audioEngine !== false) {
+                        
+                    }
+        if (!engine) throw 'engine should not be null.';
+        startRenderLoop(engine, canvas);
+        window.scene = delayCreateScene();};
+        initFunction().then(() => {sceneToRender = scene
+                    });
+
+                    // Resize
+                    window.addEventListener("resize", function () {
+                        engine.resize();
+                    });
+        </script>
+    </body>
+</html>

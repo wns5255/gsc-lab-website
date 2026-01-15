@@ -1,0 +1,27 @@
+# Build outputs (프로젝트에 맞게 유지/제외 선택)
+dist/
+build/
+
+
+# Env / secrets
+.env
+
+.env
+
+.env.*
+
+*.key
+
+*.pem
+
+
+# OS / IDE
+
+.DS_Store
+
+Thumbs.db
+
+.vs/
+
+.idea/
+

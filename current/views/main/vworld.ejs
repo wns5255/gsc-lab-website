@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>GSC Lab - Soongsil Univ.</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="assets/gsc_logo-DsAFOfte.svg" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Vworld Api -->
+        <script type="text/javascript" src="https://map.vworld.kr/js/webglMapInit.js.do?version=3.0&apiKey=3D67B28F-7DD7-3654-9A32-5DAB4A5B6F47"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link rel="stylesheet" crossorigin href="css/globals.css">
+        <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                overflow: hidden; /* 스크롤 방지 */
+            }
+            #map {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            }
+        </style>
+    </head>
+    <body>
+            <div id="vmap" style="width:98%;height:95%;left:0px;top:0px"></div>
+            <input type="button" onclick="createMarker()" value="마커생성">
+            <input type="button" onclick="removeMarker()" value="마커삭제">
+            <input type="button" onclick="updateMarker()" value="마커내용변경">
+            <!-- 지도가 그려지는 영역 조정 -->
+        
+            <script type="text/javascript">
+                var map;
+        
+                /* begin -------- 맵 초기화 코드 --------- */
+                function vwmap() {
+        
+                    var options = {
+                        mapId: "vmap",
+                        initPosition: new vw.CameraPosition(
+                            new vw.CoordZ(126.96631973576582, 37.592869061415165, 62300),
+                            new vw.Direction(0, -90, 0)
+                        ),
+                        logo: true,
+                        navigation: true
+                    };
+        
+                    map = new vw.Map();
+                    map.setOption(options);
+                    map.start();
+        
+                }
+                /* end -------- 맵 초기화 코드 --------- */
+        
+        
+                /* begin -------- html document ready 콜백 등록 --------- */
+                if (document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)) {
+                    onDomReady();
+                } else {
+                    document.addEventListener("DOMContentLoaded", onDomReady);
+                }
+                /* end  -------- html document ready 콜백 등록 --------- */
+        
+                function onDomReady() {
+                    vwmap(); //페이지 로드 완료 후 맵초기화호출
+        
+                }
+        
+
+                
+                function createMarker() {
+                    // 높이값을 지정하여 마커 생성
+                    var title1 = "camp1";
+                    var x = 126.96631973576582;
+                    var y = 37.592869061415165;
+                    var text = '<div class="vworld-info-window"><p><h2>밤나무계곡 오토캠핑장</h2></p>';
+                    text += "<p><b>검색주소</b> : 가평군 북면 토대리 408</p>";
+                    text += "<p><b>경도</b> : 비공개</p>";
+                    text += "<p><b>위도</b> : 동해물과백두산이 마르고닳도록 하느님이 보우하사 우리나라 만세. 무궁화삼천리 화려강산 대한사람 대한사람 길이 보전하세.</p>";
+                    text += "<p><b>물놀이 명칭</b> : 가평천</p>";
+                    text += "<p><b>시군구</b> : 가평군</p>";
+                    text += "<p><b>읍면</b> : 동해물과백두산이 마르고닳도록 하느님이 보우하사 우리나라 만세. 무궁화삼천리 화려강산 대한사람 대한사람 길이 보전하세.</p>";
+                    text += "<p><b>상세 주소지</b> : 도대리 408</p>";
+                    text += "<p><b>명칭</b> : 밤나무계곡 오토캠핑장</p>";
+                    text += "<p><b>분류</b> : 계곡. 동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세. 무궁화 삼천리 화려강산 대한사람.</p>";
+                    text += "</div>";
+        
+                    var imgpath = "landscape/chShort.png";
+                    // map.createMarker(title1, x, y, text, imgpath, 0.05, 0.05, 1);
+        
+                    // labelOptions을 지정하여 마커 생성
+                    var title2 = "test2";
+                    var x = 126.96631973576582;
+                    var y = 37.592869061415165;
+                    var text = "테스트2<br>테스트2<br>테스트2<br>";
+                    var imgpath = "landscape/chShort.png";
+                    // var imgpath = '<img src="landscape/chShort.png" style="width:100px; height:100px;">';
+                    var labelText = "라벨적용 테스트2";
+        
+                    var labelOptions = {
+                        //showBackground : true      // 라벨 백그라운드 적용유무
+                        //,backgroundColor : ws3d.common.Color.fromCssColorString('#FFFFFF').withAlpha(0.9)  // 백그라운드 css색상으로 부터 color생성하기
+                        text: labelText // 라벨 적용.
+                            ,
+                        font: '20px 나눔고딕,sans-serif' // 글자폰트
+                            ,
+                        fillColor: ws3d.common.Color.fromCssColorString('#FF0000') // 글자색상
+                            ,
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY // 라벨이 지형에 파뭍히지 않도록 설정.  
+                            ,
+                        style: ws3d.common.LabelStyle.FILL_AND_OUTLINE // 라벨 글자 안쪽 및 외곽 색상 채우기 FILL, FILL_AND_OUTLINE, OUTLINE
+                            ,
+                        pixelOffset: new ws3d.common.Cartesian2(0, 1000) // 생략가능. 생략시 마커 위에 표시됨. x : 0 - 가운데, (음수)-50 - 왼쪽방향, (양수)50 - 오른쪽방향, y : 0 - 아이콘 바로 위, (음수)-50 : 위쪽 방향, (양수) 50 : 아래쪽방향
+                    };
+        
+                    map.createMarker(title2, x, y, text, imgpath, 1, 1, 20, labelOptions);
+                }
+        
+                function removeMarker() {
+                    // 객체 삭제는 2가지 방법이 존재합니다.
+                    /*  // 아이디로 삭제하는 법.
+              var _obj = map.removeObjectById("test1");
+                console.log("obj2 :" , _obj); */
+                    // 객체로 삭제하는 법.
+                    var Obj = map.getObjectById("camp1");
+                    //console.log("Obj :" , Obj);
+                    map.removeObject(Obj);
+                }
+        
+                function updateMarker() {
+                    var Obj = map.getObjectById("test2");
+                    var x = 126.96631973576582 ;
+                    var y = 37.592869061415165;
+                    var text = "테스트3<br>테스트3<br>테스트3<br>";
+                    Obj.popupHeight = 1;
+                    Obj.popupWidth = 1;
+                    Obj.popupHtml = text;
+                    Obj.show();
+        
+                    console.log("Obj :", Obj);
+                }
+            </script>
+        
+         <!-- Footer-->
+        <!-- <footer class="footer py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-4 text-lg-start">Copyright &copy; GSClab made by 2025</div>
+                    <div class="col-lg-4 my-3 my-lg-0">
+                        <a class="btn btn-dark btn-social mx-2" href="https://www.youtube.com/@%EB%B9%84%EC%A3%BC%EC%96%BC%EC%9D%B8%ED%94%BC%EB%8B%88%ED%8B%B0" aria-label="Youtube"><i class="fa-brands fa-youtube"></i></a>
+                        <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Github"><i class="fa-brands fa-github"></i></a>
+                        <a class="btn btn-dark btn-social mx-2" href="https://gsclab.kr/" aria-label="Meta"><i class="fa-brands fa-meta"></i></a>    
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a class="link-dark text-decoration-none me-3" href="#!">T. 02-821-2889</a>
+                        <a class="link-dark text-decoration-none" href="#!">E. dkim@ssu.ac.kr</a>
+                    </div>
+                </div>
+            </div>
+        </footer> -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="js/scripts_2.js"></script>
+
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!--<script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>-->
+    </body>
+</html>

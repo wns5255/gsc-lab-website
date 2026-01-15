@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Babylon Template</title>
+
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylon.glTF2FileLoader.min.js"></script>
+
+</head>
+
+<body>
+
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("renderCanvas"); // Get the canvas element
+        const engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+
+        var createScene = async function () {
+
+            // This creates a basic Babylon Scene object (non-mesh)
+            var scene = new BABYLON.Scene(engine);
+
+            // This creates and positions a free camera (non-mesh)
+            var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 0, 0), scene);
+
+            // This targets the camera to scene origin
+            camera.setTarget(BABYLON.Vector3.Zero());
+
+            // This attaches the camera to the canvas
+            camera.attachControl(canvas, true);
+
+            // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+            var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+            // Default intensity is 1. Let's dim the light a small amount
+            light.intensity = 0.7;
+
+            // GUI for selecting ply files
+            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+            // Create the 3D UI manager
+            var manager = new BABYLON.GUI.GUI3DManager(scene);
+
+            // GUI
+            var plane = BABYLON.Mesh.CreatePlane("plane", 1);
+            plane.isNearPickable = true;
+            plane.position = new BABYLON.Vector3(0, 1.5, 0.5);
+            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+
+            var mainPanel = new BABYLON.GUI.StackPanel();
+            mainPanel.isVertical = false;
+            mainPanel.width = "1000px";
+            advancedTexture.addControl(mainPanel);
+
+            // Button panel
+            var buttonPanel = new BABYLON.GUI.StackPanel();
+            buttonPanel.width = "500px";
+            buttonPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+            mainPanel.addControl(buttonPanel);
+
+            var header = new BABYLON.GUI.TextBlock();
+            header.text = "Select a PLY File";
+            header.height = "100px";
+            header.color = "white";
+            header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            header.fontSize = "40";
+            header.fontFamily = "times new roman";
+            buttonPanel.addControl(header);
+
+            // var plyFiles = [
+            //     "../../plyAssets/list/point_cloud.ply",
+            //     "../../plyAssets/list/point_cloud2.ply",
+            //     "../../plyAssets/list/Scaniverse_test.ply",
+            //     "../../plyAssets/list/banana.ply",
+            //     "../../plyAssets/list/pooh.ply",
+            //     "../../plyAssets/list/pooh2.ply"
+            // ];
+
+            var list = '<%= result%>';
+            var plyFiles
+
+            if (list.length == 0) {
+                plyFiles = [];
+            }
+
+            else {
+                plyFiles = list.split(',');
+            }
+
+            var selectedGS = null;
+
+            plyFiles.forEach((file, index) => {
+                var button = BABYLON.GUI.Button.CreateSimpleButton("btn" + index, file);
+                button.width = "200px";
+                button.height = "50px";
+                button.cornerRadius = 20;
+                button.color = "white";
+                button.background = "#334557";
+                button.paddingBottom = "8px";
+                button.fontFamily = "times new roman";
+                button.onPointerUpObservable.add(async function () {
+                    if (selectedGS) {
+                        selectedGS.dispose();
+                    }
+
+                    selectedGS = new BABYLON.GaussianSplattingMesh("Halo", null, scene);
+                    await selectedGS.loadFileAsync('../../plyAssets/room/' + file);
+                    selectedGS.position.x = 0;
+                    selectedGS.scaling = new BABYLON.Vector3(1, 1, 1);
+
+                    // Initialize rotation quaternion if not set
+                    if (!selectedGS.rotationQuaternion) {
+                        selectedGS.rotationQuaternion = new BABYLON.Quaternion();
+                    }
+                });
+                buttonPanel.addControl(button);
+            });
+
+            // Slider panel
+            var sliderPanel = new BABYLON.GUI.StackPanel();
+            sliderPanel.width = "500px";
+            sliderPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            mainPanel.addControl(sliderPanel);
+
+            var header2 = new BABYLON.GUI.TextBlock();
+            header2.text = "Edit a PLY File";
+            header2.height = "100px";
+            header2.color = "white";
+            header2.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            header2.fontSize = "40";
+            header2.fontFamily = "times new roman";
+            sliderPanel.addControl(header2);
+
+            var addSlider = function (text, min, max, value, callback) {
+                var sliderContainer = new BABYLON.GUI.StackPanel();
+                sliderContainer.height = "100px";
+
+                var textBlock = new BABYLON.GUI.TextBlock();
+                textBlock.text = text + ": " + value.toFixed(2);
+                textBlock.height = "30px";
+                textBlock.color = "white";
+                textBlock.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                sliderContainer.addControl(textBlock);
+
+                var slider = new BABYLON.GUI.Slider();
+                slider.minimum = min;
+                slider.maximum = max;
+                slider.value = value;
+                slider.height = "50px";
+                slider.width = "400px";
+                slider.onValueChangedObservable.add(function (newValue) {
+                    textBlock.text = text + ": " + newValue.toFixed(2);
+                    callback(newValue);
+                });
+
+                sliderContainer.addControl(slider);
+                sliderPanel.addControl(sliderContainer);
+            };
+
+            addSlider("Scale", 0.1, 2, 1, function (value) {
+                if (selectedGS) {
+                    selectedGS.scaling = new BABYLON.Vector3(value, value, value);
+                }
+            });
+
+            addSlider("Rotation X", -Math.PI, Math.PI, 0, function (value) {
+                if (selectedGS && selectedGS.rotationQuaternion) {
+                    const currentRotation = selectedGS.rotationQuaternion.toEulerAngles();
+                    selectedGS.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(value, currentRotation.y, currentRotation.z);
+                }
+            });
+
+            addSlider("Rotation Y", -Math.PI, Math.PI, 0, function (value) {
+                if (selectedGS && selectedGS.rotationQuaternion) {
+                    const currentRotation = selectedGS.rotationQuaternion.toEulerAngles();
+                    selectedGS.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(currentRotation.x, value, currentRotation.z);
+                }
+            });
+
+            addSlider("Rotation Z", -Math.PI, Math.PI, 0, function (value) {
+                if (selectedGS && selectedGS.rotationQuaternion) {
+                    const currentRotation = selectedGS.rotationQuaternion.toEulerAngles();
+                    selectedGS.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(currentRotation.x, currentRotation.y, value);
+                }
+            });
+
+            // XR
+            const xrHelper = await scene.createDefaultXRExperienceAsync({
+                uiOptions: {
+                    sessionMode: "immersive-ar",
+                }
+            });
+
+            // scene.onBeforeRenderObservable.add(() => {
+            //     if (xrHelper.baseExperience && xrHelper.baseExperience.camera) {
+            //         const xrCamera = xrHelper.baseExperience.camera;
+            //         //cameraPositionText.text = `Camera Position: X: ${xrCamera.position.x.toFixed(2)}, Y: ${xrCamera.position.y.toFixed(2)}, Z: ${xrCamera.position.z.toFixed(2)}`;
+            //     }
+            // });
+
+            xrHelper.input.onControllerAddedObservable.add((controller) => {
+                controller.onMotionControllerInitObservable.add((motionController) => {
+                    if (motionController.handness === 'right') {
+                        const xr_ids = motionController.getComponentIds();
+                        let triggerComponent = motionController.getComponent(xr_ids[3]); // xr-standard-trigger
+                        triggerComponent.onButtonStateChangedObservable.add(() => {
+                            if (triggerComponent.pressed) {
+                                xrHelper.baseExperience.exitXRAsync()
+                            }
+                        });
+                    }
+                });
+            });
+
+            return scene;
+        };
+
+        // call the createScene function
+        createScene().then(scene => {
+            engine.runRenderLoop(function () {
+                scene.render();
+            });
+        }).catch(error => {
+            console.error("Failed to create scene:", error);
+        });
+
+        // Watch for browser/canvas resize events
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+
+
+    </script>
+
+</body>
+
+</html>

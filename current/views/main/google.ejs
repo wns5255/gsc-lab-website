@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Step 4 - SVG Marker</title>
+    <style>
+        body {
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
+            key: "AIzaSyBuZF0TvEf1jGcCcS1DmOkgYbNvI04oWu0",
+            v: "alpha",
+            // Use the 'v' parameter to indicate the version to use (weekly, beta, alpha, etc.).
+            // Add other bootstrap parameters as needed, using camel case.
+        });
+
+    </script>
+    <script>
+        let map3D = null;
+
+        async function init() {
+            const { Map3DElement, MapMode, Marker3DElement } = await google.maps.importLibrary("maps3d");
+            const { PinElement } = await google.maps.importLibrary('marker');
+
+            let markersData = [];
+            try {
+                const response = await fetch('landscape/trans/SansooData.csv'); // Fetch the CSV file
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                // Parse CSV data
+                const lines = csvText.trim().split('\n');
+                const header = lines[0].split(','); // Expected: "no", "src", "lat", "lng"
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',');
+                    if (values.length === header.length) { // Ensure correct number of columns
+                        const markerObject = {
+                            no: parseInt(values[0], 10),
+                            src: values[1],
+                            lat: parseFloat(values[2]),
+                            lng: parseFloat(values[3])
+                        };
+                        markersData.push(markerObject);
+                    } else {
+                        console.warn(`Skipping malformed CSV line: ${lines[i]}`);
+                    }
+                }
+                console.log("CSV 데이터 로드 및 파싱 완료. 총 " + markersData.length + "개 마커 데이터.");
+
+            } catch (error) {
+                console.error("CSV 파일 로드 또는 파싱 중 오류 발생:", error);
+                alert("마커 데이터를 로드하지 못했습니다. 웹 서버에서 파일을 실행 중인지 확인하고, 파일 경로가 올바른지 확인해주세요.");
+                return; // Exit init if data loading fails critically
+            }
+
+            // Create markers from the loaded CSV data
+            const allMarkers = [];
+            const categorizedMarkers = { 1: [], 2: [], 3: [] }; // Used if you plan to filter by 'no' later
+
+            for (const data of markersData) {
+                const imgElement = document.createElement('img');
+                imgElement.src = data.src;
+                imgElement.style.width = "257px"; // Set the desired width
+
+                const marker = new Marker3DElement({
+                    position: { lat: data.lat, lng: data.lng },
+                });
+                const template = document.createElement('template');
+                template.content.append(imgElement);
+                marker.append(template);
+
+                allMarkers.push(marker);
+                if (categorizedMarkers[data.no]) {
+                    categorizedMarkers[data.no].push(marker);
+                }
+            }
+            console.log(`모든 마커 객체 생성 및 분류 완료. (allMarkers.length: ${allMarkers.length})`);
+
+
+            // Initialize Map3DElement
+            map3D = new Map3DElement({
+                center: { lat: 37.520, lng: 127.040, altitude: 1000 }, // Adjusted center for better view of all markers
+                range: 15000, // Adjusted range to fit all markers
+                tilt: 45,
+                heading: 0,
+                mode: MapMode.SATELLITE,
+            });
+            console.log("Map3DElement 초기화 완료.");
+
+
+            // Append all created markers to the map
+            for (const marker of allMarkers) {
+                map3D.append(marker);
+            }
+            console.log("모든 마커 지도에 추가 완료.");
+
+            document.body.append(map3D);
+            console.log("Map3DElement가 DOM에 추가됨.");
+
+            // Optional: You can add logic here to control marker visibility based on 'no'
+            // For example, to show only markers with 'no: 3'
+            // for (const marker of allMarkers) {
+            //     const markerData = markersData.find(data =>
+            //         data.lat === marker.position.lat && data.lng === marker.position.lng
+            //     );
+            //     if (markerData && markerData.no === 3) {
+            //         marker.visible = true;
+            //     } else {
+            //         marker.visible = false;
+            //     }
+            // }
+            // console.log("초기 마커 가시성 설정 완료 (예: 'no'가 3인 마커만 표시).");
+        }
+        init();
+    </script>
+</body>
+
+</html>

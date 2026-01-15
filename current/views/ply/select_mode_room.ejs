@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메인 화면</title>
+    <link rel="stylesheet" href="../../plyAssets/index_css.css">
+
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .unique-button-class {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 핸드폰(최대 768px 이하)에서 버튼을 세로로 배열되게 하는 미디어 쿼리 */
+        @media (max-width: 768px) {
+            .button-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+    
+</head>
+
+<body>
+    <h1>모드 선택</h1>
+    <!-- <button onclick="location.href='https://gsclab.kr/ply/select_mode_room.html'">Room Scale</button>
+    <button onclick="location.href='https://gsclab.kr/ply/select_mode_obj.html'">Object Scale</button> -->
+
+    <div class="button-container">
+        <button type="button" class="unique-button-class" id="vr-button">
+            <div class="lazyload" style="background-image: url(../../plyAssets/images/vr.jpg);">
+                <span></span>
+            </div>
+            <h2>VR Mode</h2>
+        </button>
+
+        <button class="unique-button-class" id="ar-button">
+            <div class="lazyload" style="background-image: url(../../plyAssets/images/ar.jpg);">
+                <span></span>
+            </div>
+            <h2>AR Mode</h2>
+        </button>
+    </div>
+
+
+</body>
+<script>
+    document.getElementById('vr-button').addEventListener('click', function () {
+        window.location.href = '/ply/room/VR';
+    });
+
+    document.getElementById('ar-button').addEventListener('click', function () {
+        window.location.href = '/ply/room/AR';
+    });
+
+</script>
+
+</html>

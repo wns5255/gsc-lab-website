@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Babylon Template</title>
+
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylon.glTF2FileLoader.min.js"></script>
+
+</head>
+
+<body>
+
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+
+        const canvas = document.getElementById("renderCanvas"); // Get the canvas element
+        const engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+
+        var createScene = async function () {
+            // This creates a basic Babylon Scene object (non-mesh)
+            var scene = new BABYLON.Scene(engine);
+
+            // This creates and positions a free camera (non-mesh)
+            var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 0, 0), scene);
+
+            // This targets the camera to scene origin
+            camera.setTarget(BABYLON.Vector3.Zero());
+
+            // This attaches the camera to the canvas
+            camera.attachControl(canvas, true);
+
+            // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+            var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+            // Default intensity is 1. Let's dim the light a small amount
+            light.intensity = 0.7;
+
+            // GUI
+            var planeActive = true;
+            var plane = BABYLON.Mesh.CreatePlane("plane", 1);
+            plane.isNearPickable = true;
+            plane.position = new BABYLON.Vector3(0, 1.2, 0.5);
+            
+            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+
+            // Main panel
+            var mainPanel = new BABYLON.GUI.ScrollViewer();
+            mainPanel.width = "800px";
+            mainPanel.height = "600px";
+            mainPanel.background = "#F7F7F7";
+            mainPanel.cornerRadius = "10";
+            advancedTexture.addControl(mainPanel);
+
+            // Button panel
+            var buttonPanel = new BABYLON.GUI.StackPanel();
+            buttonPanel.width = "400px";
+            buttonPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+            mainPanel.addControl(buttonPanel);
+
+            var header = new BABYLON.GUI.TextBlock();
+            header.text = "불러올 파일 선택";
+            header.height = "100px";
+            header.color = fontColor;
+            header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            header.fontSize = "40";
+            header.fontFamily = "times new roman";
+            buttonPanel.addControl(header);
+
+            //ply 리스트
+            // var plyFiles = [
+            //     "../../plyAssets/list/point_cloud.ply",
+            //     "../../plyAssets/list/point_cloud2.ply",
+            //     "../../plyAssets/list/Scaniverse_test.ply",
+            //     "../../plyAssets/list/banana.ply",
+            //     "../../plyAssets/list/pooh.ply",
+            //     "../../plyAssets/list/pooh2.ply"
+            // ];
+
+            var list = '<%= result%>';
+            var plyFiles
+
+            if (list.length == 0) {
+                plyFiles = [];
+            }
+
+            else {
+                plyFiles = list.split(',');
+            }
+
+            var selectedGS = [];
+            var gizmos = [];
+            var spheres = [];
+            var maxFiles = 2;
+            var buttons = [];
+            var gizmosEnabled = true;
+            var originColor = "#F2E7D5";
+            var clickedColor = "#6D9886";
+            var fontColor = "#393E46";
+
+            var gizmoButton = BABYLON.GUI.Button.CreateSimpleButton("gizmoButton", "크기 조정 기능 켜기");
+            gizmoButton.width = "200px";
+            gizmoButton.height = "50px";
+            gizmoButton.cornerRadius = 20;
+            gizmoButton.color = fontColor;
+            gizmoButton.background = clickedColor;
+            gizmoButton.paddingBottom = "8px";
+            gizmoButton.fontFamily = "times new roman";
+            gizmoButton.onPointerUpObservable.add(() => {
+                gizmosEnabled = !gizmosEnabled;
+                gizmos.forEach((gizmo, index) => {
+                    gizmo.attachedMesh = gizmosEnabled ? selectedGS[index] : null;
+                });
+                gizmoButton.background = gizmosEnabled ? clickedColor : originColor;
+            });
+            buttonPanel.addControl(gizmoButton);
+
+            plyFiles.forEach((file, index) => {
+                var button = BABYLON.GUI.Button.CreateSimpleButton("btn" + index, file);
+                button.width = "200px";
+                button.height = "50px";
+                button.cornerRadius = 15;
+                button.color = fontColor;
+                button.background = originColor;
+                button.paddingBottom = "8px";
+                button.fontFamily = "times new roman";
+                button.onPointerUpObservable.add(async function () {
+                    // Check if the file is already loaded
+                    let existingIndex = selectedGS.findIndex(gs => gs.index === index);
+                    if (existingIndex !== -1) {
+                        // Dispose the existing mesh and its gizmo
+                        selectedGS[existingIndex].dispose();
+                        gizmos[existingIndex].dispose();
+                        spheres[existingIndex].dispose();
+                        selectedGS.splice(existingIndex, 1);
+                        gizmos.splice(existingIndex, 1);
+                        spheres.splice(existingIndex, 1);
+                        button.background = originColor;
+                        return;
+                    }
+
+                    if (selectedGS.length >= maxFiles) {
+                        var oldestGS = selectedGS.shift();
+                        var oldestGizmo = gizmos.shift();
+                        oldestGS.dispose();
+                        oldestGizmo.dispose();
+                        // Reset the color of the first button in the list
+                        buttons[oldestGS.index].background = originColor;
+                    }
+
+                    // Load the new PLY file
+                    var gs = new BABYLON.GaussianSplattingMesh("Halo" + index, null, scene);
+                    await gs.loadFileAsync('../../plyAssets/object/' + file);
+                    gs.position = new BABYLON.Vector3(0, 1.5, 1);
+                    gs.scaling = new BABYLON.Vector3(1, 1, 1);
+                    gs.index = index;
+
+                    // Add the new PLY file to the list
+                    selectedGS.push(gs);
+
+                    // Create and attach gizmo
+                    var utilLayer = new BABYLON.UtilityLayerRenderer(scene);
+                    utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
+                    var gizmo = new BABYLON.BoundingBoxGizmo(BABYLON.Color3.FromHexString("#0eb684"), utilLayer);
+                    gizmo.attachedMesh = gs;
+                    gizmo.parent = gs;
+                    gizmos.push(gizmo);
+
+                    const cube = BABYLON.MeshBuilder.CreateBox("cube", {
+                        size: 1
+                    });
+                    cube.parent = gs;
+                    cube.scaling = gs.scaling;  
+                    cube.visibility = 0;  
+                    spheres.push(cube); 
+
+                    // Set the selected button's background to orange
+                    button.background = clickedColor;
+                });
+                buttonPanel.addControl(button);
+                buttons.push(button);
+            });
+
+            // Slider panel
+            var sliderPanel = new BABYLON.GUI.StackPanel();
+            sliderPanel.width = "400px";
+            sliderPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            mainPanel.addControl(sliderPanel);
+
+            var message = new BABYLON.GUI.TextBlock();
+            message.text = "\n\nX버튼을 눌러 패널 숨기기\n\nA버튼을 눌러 패널 가져오기";
+            message.height = "200px";
+            message.color = fontColor;
+            message.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            message.fontSize = "30";
+            message.fontFamily = "times new roman";
+            sliderPanel.addControl(message);
+
+            var message2 = new BABYLON.GUI.TextBlock();
+            message2.text = "모델 크기 조정";
+            message2.height = "100px";
+            message2.color = fontColor;
+            message2.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            message2.fontSize = "30";
+            message2.fontFamily = "times new roman";
+            sliderPanel.addControl(message2);
+
+            var addSlider = function (text, min, max, value, callback) {
+                var sliderContainer = new BABYLON.GUI.StackPanel();
+                sliderContainer.height = "100px";
+
+                var textBlock = new BABYLON.GUI.TextBlock();
+                textBlock.text = text + ": " + value.toFixed(2);
+                textBlock.height = "30px";
+                textBlock.color = fontColor;
+                textBlock.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                sliderContainer.addControl(textBlock);
+
+                var slider = new BABYLON.GUI.Slider();
+                slider.minimum = min;
+                slider.maximum = max;
+                slider.value = value;
+                slider.height = "50px";
+                slider.width = "400px";
+                slider.onValueChangedObservable.add(function (newValue) {
+                    textBlock.text = text + ": " + newValue.toFixed(2);
+                    callback(newValue);
+                });
+
+                sliderContainer.addControl(slider);
+                sliderPanel.addControl(sliderContainer);
+            };
+
+            addSlider("Scale", 0.1, 30, 1, function (value) {
+                selectedGS.forEach(gs => gs.scaling = new BABYLON.Vector3(value, value, value));
+            });
+
+            var exitButton = BABYLON.GUI.Button.CreateSimpleButton("gizmoButton", "종료");
+            exitButton.width = "200px";
+            exitButton.height = "50px";
+            exitButton.cornerRadius = 20;
+            exitButton.color = fontColor;
+            exitButton.background = clickedColor;
+            exitButton.paddingBottom = "8px";
+            exitButton.fontFamily = "times new roman";
+            exitButton.onPointerUpObservable.add(() => {
+                xrHelper.baseExperience.exitXRAsync();
+            });
+            sliderPanel.addControl(exitButton);
+
+            // XR
+            const xrHelper = await scene.createDefaultXRExperienceAsync({
+                uiOptions: {
+                    sessionMode: "immersive-ar",
+                }
+            });
+
+            let meshAttachedToController = false;
+
+            scene.onPointerObservable.add((pointerInfo) => {
+                if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh != plane) { //can not pick "plane" mesh
+                    if (xrHelper.baseExperience.state === BABYLON.WebXRState.IN_XR) {
+                        let xrInput = xrHelper.pointerSelection.getXRControllerByPointerId(pointerInfo.event.pointerId);
+                        if (xrInput) {
+                            let motionController = xrInput.motionController;
+                            if (motionController) {
+                                const mesh = pointerInfo.pickInfo.pickedMesh;
+                                if (meshAttachedToController) {
+                                    mesh.setParent(null);
+                                    meshAttachedToController = false;
+                                } else {
+                                    mesh.setParent(motionController.grip || motionController.rootMesh);
+                                    meshAttachedToController = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }, BABYLON.PointerEventTypes.POINTERPICK);
+
+            xrHelper.input.onControllerAddedObservable.add((controller) => {
+                controller.onMotionControllerInitObservable.add((motionController) => {
+                    if (motionController.handness === 'left') {
+                        const xr_ids = motionController.getComponentIds();
+                        let triggerComponent = motionController.getComponent(xr_ids[3]); // xr-standard-trigger
+                        triggerComponent.onButtonStateChangedObservable.add(() => {
+                            if (triggerComponent.pressed) {
+                                if(planeActive){
+                                    plane.isVisible = false;
+                                    planeActive = false;
+                                } else {
+                                    plane.isVisible = true;
+                                    planeActive = true;
+                                }
+                            }
+                        });
+                    }
+                    if (motionController.handness === 'right') {
+                        const xr_ids = motionController.getComponentIds();
+                        let triggerComponent = motionController.getComponent(xr_ids[3]); // "X" button
+                        triggerComponent.onButtonStateChangedObservable.add(() => {
+                            if (triggerComponent.pressed) {
+                                if (xrHelper.baseExperience && xrHelper.baseExperience.camera) {
+                                    const xrCamera = xrHelper.baseExperience.camera;
+                                    plane.position.x = xrCamera.position.x;
+                                    plane.position.y = xrCamera.position.y - 0.1;
+                                    plane.position.z = xrCamera.position.z + 0.5;
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            return scene;
+        };
+
+        var scene = createScene(); //Call the createScene function
+
+        // Register a render loop to repeatedly render the scene
+        engine.runRenderLoop(function () {
+            scene.then(function (scene) {
+                scene.render();
+            });
+        });
+
+        // Watch for browser/canvas resize events
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+
+    </script>
+
+</body>
+
+</html>

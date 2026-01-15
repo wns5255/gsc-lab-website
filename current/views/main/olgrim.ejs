@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>메타버스 프로젝트</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <link rel="icon" href="icon.ico">
+
+    <!-- Vendor CSS Files -->
+    <link href="mainAssets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="mainAssets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="mainAssets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="mainAssets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="mainAssets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="mainAssets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="mainAssets/css/main.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.0.slim.js"
+        integrity="sha256-7GO+jepT9gJe9LB4XFf8snVOjX3iYNb0FHYr5LI1N5c=" crossorigin="anonymous"></script>
+
+    <!--css-->
+    <style>
+        @font-face {
+            font-family: '행복고흥L';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/행복고흥L.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        img {
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+
+        }
+
+        p {
+            background-color: rgba(255, 255, 255, 0);
+        }
+
+
+        .customoverlay {
+            position: relative;
+            bottom: 85px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            border-bottom: 2px solid #ddd;
+            float: left;
+        }
+
+        .customoverlay:nth-of-type(n) {
+            border: 0;
+            box-shadow: 0px 1px 2px #888;
+        }
+
+        .customoverlay a {
+            display: block;
+            text-decoration: none;
+            color: #000;
+            text-align: center;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            overflow: hidden;
+            background: #f89f00;
+            background: #f89f00 url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/arrow_white.png) no-repeat right 14px center;
+        }
+
+        .customoverlay .title {
+            display: block;
+            text-align: center;
+            background: #fff;
+            margin-right: 35px;
+            padding: 10px 15px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .customoverlay:after {
+            content: '';
+            position: absolute;
+            margin-left: -12px;
+            left: 50%;
+            bottom: -12px;
+            width: 22px;
+            height: 12px;
+            background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png')
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nanum Myeongjo', serif;
+        }
+
+        .map_wrap {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+        }
+
+        .custom_zoomcontrol {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            width: 72px;
+            height: 160px;
+            overflow: hidden;
+            z-index: 1;
+            background-color: #f5f5f5;
+        }
+
+        .custom_zoomcontrol span {
+            display: block;
+            width: 72px;
+            height: 80px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .custom_zoomcontrol span img {
+            width: 72px;
+            height: 70px;
+            padding: 6px 0;
+            border: none;
+        }
+
+        .custom_zoomcontrol span:first-child {
+            border-bottom: 1px solid #bfbfbf;
+        }
+
+        .custom_maptypecontrol {
+            position: absolute;
+            bottom: 40px;
+            left: 20px;
+            z-index: 1;
+            width: 72px;
+            height: 72px;
+        }
+
+        .custom_location {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            z-index: 99;
+        }
+
+        .place_list {
+            display: none;
+        }
+
+        .place_list.active {
+            position: absolute;
+            width: 310px;
+            height: 594px;
+            bottom: 120px;
+            right: 80px;
+            z-index: 1;
+            display: block;
+            background-color: #fff;
+            border-radius: 15px;
+            overflow: scroll;
+            color: #000;
+        }
+
+        .list_title {
+            position: relative;
+            text-align: center;
+            text-align: center;
+        }
+
+        .list {
+            margin: 0 auto;
+            width: 75%;
+            height: 40px;
+            margin-top: 20px;
+        }
+
+        .list_name {
+            margin: 0 auto;
+            float: left;
+            width: 80px;
+            height: 100%;
+            text-align: center;
+        }
+
+        .list_toggle {
+            margin: 0 auto;
+            width: 90px;
+            height: 100%;
+            display: inline-block;
+            margin-left: 40px;
+            text-align: center;
+            cursor: hand;
+        }
+
+        .list_close_button {
+            bottom: 20px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .picture_title {
+            position: relative;
+            text-align: center;
+            text-align: center;
+            margin: 0 auto;
+            font-family: '행복고흥L';
+        }
+
+        .picture_explain {
+            display: none;
+        }
+
+        .picture_explain.active {
+            position: absolute;
+            width: 1200px;
+            height: 700px;
+            bottom: 20px;
+            right: 160px;
+            z-index: 1;
+            display: block;
+            background-color: #fff;
+            border-radius: 15px;
+        }
+
+        .picture_explain_image {
+            position: relative;
+            width: 50%;
+            height: 50%;
+            margin: 0 auto;
+            z-index: 1;
+            display: block;
+            background-color: rgba(255, 255, 255, 0.0);
+        }
+
+        .picture_close_button {
+            position: absolute;
+            top: 20px;
+            right: 10px;
+            margin: 0 auto;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .overlay {
+            position: relative;
+            top: -10%;
+            width: 90%;
+            height: 50%;
+            margin: 0 auto;
+            background-color: rgba(114, 114, 114, 1);
+        }
+
+        .overlay_Baegun-dong {
+            position: relative;
+            top: -40%;
+            width: 90%;
+            height: 50%;
+            margin: 0 auto;
+            z-index: 1;
+        }
+
+        .picture_explain_w {
+            position: relative;
+            text-align: center;
+            bottom: 50%;
+        }
+
+
+        .trans_button {
+            position: relative;
+            text-align: center;
+            margin: 0 auto;
+            width: 80%;
+            height: 20%;
+            background-color: #f89f00;
+            z-index: 1;
+        }
+
+        .another_button {
+            position: relative;
+            text-align: center;
+            margin: 0 auto;
+            top: 20%;
+            width: 80%;
+            height: 5%;
+            /* 검정색 직사각형의 높이 조절 */
+            background-color: #ecd92d;
+            /* 검정색 직사각형의 색상 설정 */
+            z-index: 1;
+        }
+
+        [type="button"] {
+            cursor: pointer
+        }
+
+        [type="checkbox"] {
+            appearance: none;
+            position: relative;
+            border: max(2px, 0.1em) solid gray;
+            border-radius: 1.25em;
+            width: 2.25em;
+            height: 1.25em;
+        }
+
+        [type="checkbox"]::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            transform: scale(0.8);
+            background-color: gray;
+            transition: left 250ms linear;
+        }
+
+        [type="checkbox"]:checked::before {
+            background-color: white;
+            left: 1em;
+        }
+
+        [type="checkbox"]:checked {
+            background-color: tomato;
+            border-color: tomato;
+        }
+
+        [type="checkbox"]:disabled {
+            border-color: lightgray;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        [type="checkbox"]:disabled:before {
+            background-color: lightgray;
+        }
+
+        [type="checkbox"]:disabled+span {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        [type="checkbox"]:focus-visible {
+            outline-offset: max(2px, 0.1em);
+            outline: max(2px, 0.1em) solid tomato;
+        }
+
+        [type="checkbox"]:enabled:hover {
+            box-shadow: 0 0 0 max(4px, 0.2em) lightgray;
+        }
+
+        [type="checkbox"]::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            transform: scale(0.8);
+            background-color: gray;
+            transition: left 250ms linear;
+        }
+
+        html.open {
+            overflow: hidden;
+        }
+
+        #menu.open {
+            left: 0px;
+        }
+
+        .page_cover.open {
+            display: block;
+        }
+
+        .btn {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            z-index: 1;
+            background-image: url("http://s1.daumcdn.net/cfs.tistory/custom/blog/204/2048858/skin/images/menu.png");
+            background-size: 50%;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+        }
+
+        .close {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            background-image: url("olgrimAssets/img/xbutton.png");
+            background-size: 50%;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+        }
+
+        #menu {
+            width: 50%;
+            height: 100%;
+            position: fixed;
+            top: 0px;
+            left: -70%;
+            z-index: 10;
+            border: 1px solid #c9c9c9;
+            background-color: white;
+            text-align: center;
+            font-weight: bold;
+            transition: All 0.2s ease;
+            -webkit-transition: All 0.2s ease;
+            -moz-transition: All 0.2s ease;
+            -o-transition: All 0.2s ease;
+            padding-top: 50px;
+            padding-left: 0px;
+            padding-right: 40px;
+            overflow: scroll;
+        }
+
+        #menu a {
+            padding: 0;
+            text-decoration: none;
+            font-size: 18px;
+            color: #25a4cd;
+            display: block;
+            transition: 0.3s;
+        }
+
+        #menu.open {
+            left: 0px;
+        }
+
+        .page_cover.open {
+            display: block;
+        }
+
+        .page_cover {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0px;
+            right: 0px;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 4;
+            display: none;
+        }
+
+        #menu ul {
+            width: 190px;
+            margin: 0;
+            padding: 0;
+        }
+
+        #menu ul.nav li {
+            position: relative;
+            float: left;
+            width: 100%;
+            list-style-type: none;
+            font-size: 18px;
+        }
+
+        #menu ul.nav li a {
+            display: block;
+            width: 100%;
+            height: 100%;
+            line-height: 50px;
+            text-indent: 20px;
+            text-align: left;
+            color: #25a4cd;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        #menu ul.nav li a:hover {
+            background: #eee;
+        }
+
+        #menu ul.nav li .sub_mobile a {
+            position: relative;
+            float: left;
+            display: block;
+            width: 100%;
+            z-index: 999;
+            background: #ccc;
+        }
+
+        #menu ul.nav li .sub_mobile a:hover {
+            background: #787878;
+            color: #fff;
+            z-index: 999;
+        }
+
+        #content_image {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #toastInfo {
+            color: #000;
+        }
+    </style>
+</head>
+
+<body class="d-flex h-100 text-center text-bg-dark">
+    <!--지도-->
+    <div class="map_wrap">
+        <div id="map"></div>
+
+        <!-- 지도 확대, 축소 컨트롤 div -->
+        <div class="custom_zoomcontrol">
+            <span onclick="zoomIn()"><img src="olgrimAssets/img/free-icon-font-plus-small-4338.png" alt="확대"></span>
+            <span onclick="zoomOut()"><img src="olgrimAssets/img/free-icon-font-minus-small-433.png" alt="축소"></span>
+        </div>
+
+        <!-- 고지도 버튼 div -->
+        <div class="custom_maptypecontrol">
+            <span class="button" onclick="oldMapSwitch()"
+                style="position: relative;cursor: pointer;width: 100%;height: 100%;"><img
+                    src="olgrimAssets/img/map_trans.png" alt="고지도" style="width: 82px"></span>
+        </div>
+
+        <!-- 지도 위 장소 버튼 div -->
+        <div class="custom_location">
+            <span class="button" onclick="placeList()"><img src="olgrimAssets/img/placeButton.png" alt="장소 버튼"
+                    style="cursor: pointer;"></span>
+        </div>
+
+        <!-- 장소 버튼을 눌렀을 때 나올 장소 리스트 목록 div -->
+        <div class="place_list">
+            <div>
+                <div>
+                    <h2 class='list_title'>장소 콘텐츠 리스트</h2>
+                    <hr style="width: 75%; ">
+                    <label>
+                        <div class="list">
+                            <span class="list_name">취미대</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(0)" />
+                        </div>
+                    </label>
+                    <label>
+                        <div class="list">
+                            <span class="list_name">청송당</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(1)" />
+                        </div>
+                    </label>
+                    <label>
+                        <div class="list">
+                            <span class="list_name">수성동</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(2)" />
+                        </div>
+                    </label>
+                    <label>
+                        <div class="list">
+                            <span class="list_name">백운동</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(3)" />
+                        </div>
+                    </label>
+                    <label>
+                        <div class="list">
+                            <span class="list_name">필운대</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(4)" />
+                        </div>
+                    </label>
+                    <label>
+                        <div class="list">
+                            <span class="list_name">창의문</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(5)" />
+                        </div>
+                    </label>
+                    <label>
+                        <div class="list">
+                            <span class="list_name">독락정</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(6)" />
+                        </div>
+                    </label>
+                    <label>
+                        <div class="list">
+                            <span class="list_name">청휘각</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(7)" />
+                        </div>
+                    </label>
+                    <label>
+                        <div class="list">
+                            <span class="list_name">대은암</span>
+                            <input class="list_toggle" role="switch" type="checkbox" checked="checked"
+                                onclick="markerSwitcher(8)" />
+                        </div>
+                    </label>
+                    <hr style="width: 75%;">
+                    <label>
+                        <div class="list">
+                            <span class="list_name">전체 선택</span>
+                            <input class="list_toggle" role="switch" type="checkbox" disabled
+                                onclick="switchAll(this)" />
+                        </div>
+                    </label>
+                    <hr style="width: 75%; ">
+                    <div class="list_close_button">
+                        <button onclick="placeList()" style="cursor: pointer;">close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!--부트스트랩 스크립트-->
+    <script src="mainAssets/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!--로컬 실행키-->
+    <!--<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=eae6ccacee1cd236882afe5d816b0c3f&libraries==services,clusterer,drawing"></script>-->
+
+    <!--웹 서비스 키-->
+    <script type="text/javascript"
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=41f5171c2f12b13f50cb612bde25bca5&libraries==services,clusterer,drawing"></script>
+
+    <!--설명 패널의 밖을 누르면 설명 패널이 닫힘-->
+    <div onclick="history.back();" class="page_cover"></div>
+
+    <!--설명 패널-->
+    <div id="menu" style="background-image: url('olgrimAssets/img/backgroundTexture.jpg');">
+        <!--설명 패널의 X 버튼을 누르면 설명 패널이 닫힘-->
+        <div onclick="history.back();" class="close"></div>
+
+        <!--장소 설명 사이드 패널-->
+        <div>
+            <!--장소 이름-->
+            <h2 class='picture_title' id='title' style="font-size: 800%;color:#000;">location explain</h2>
+
+            <!--장소 그림-->
+            <div class="picture_explain_image">
+                <img id='content_image' alt='image'>
+            </div>
+
+            <!--장소 설명-->
+            <div
+                style="margin-top: 2%; position: relative; width: 80%; margin: 0 auto; margin-top: 2%; column-width: 80%; text-align: left; font-size: 150%; ">
+                <p id='explain'
+                    style="position: relative; margin: 0 auto; text-indent: 1em; line-height: 200%;color:#000">설명하는 부분
+                </p>
+            </div>
+
+            <!--2.5D 콘텐츠 버튼-->
+            <div class="trans_button" onclick="location.href='Unavaliable.html';" id="simpleContent"
+                style="cursor: pointer; margin-top: 2%;border-radius: 10px; height: 120px;">
+                <div
+                    style="vertical-align: middle;margin: 0 auto; height: 100%; position: relative;border-radius: 50%;font-size: 600%;font-family: '행복고흥L'">
+                    2.5D</div>
+            </div>
+
+            <!--레이아웃 용 div-->
+            <div style="position: relative; width: 100%; height: 100px; margin-top: 5%;"></div>
+        </div>
+    </div>
+
+    <!--우측 하단 알림 토스트 패널-->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">콘텐츠 알림!</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastInfo">basic toast message</div>
+        </div>
+    </div>
+
+    <!--설명 패널을 열고 닫는 스크립트-->
+    <script>
+        $(document).ready(function () {
+            $(".btn").click(function () {
+                $("#menu,.page_cover,html").addClass("open");
+                window.location.hash = "#open";
+            })
+
+        })
+
+        window.onhashchange = function () {
+            if (location.hash != "#open") {
+                $("#menu,.page_cover,html").removeClass("open");
+            }
+        };
+
+        $(document).ready(function () {
+            $("#menu ul.sub_mobile").hide();
+            $("#menu ul.nav li").click(function () {
+                $("ul", this).slideToggle("fast");
+            })
+        })
+    </script>
+
+    <!--메인 스크립트-->
+    <script>
+        // kakao map이 올라가는 변수
+        var map;
+        // 현재 지도 오버레이
+        var overlay;
+        // 고 지도 오버레이
+        var overlay2;
+        // 지도 로드를 위한 함수, onload에서 사용
+        function loadMap() {
+            map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+            kakao.maps.Tileset.add('WHITE_MAP',
+                new kakao.maps.Tileset({
+                    width: 512,
+                    height: 512,
+                    getTile: function (x, y, z) {
+                        var div = document.createElement('div');
+                        div.style.backgroundColor = '#D3D3D3';
+                        return div;
+                    }
+                })
+            );
+        }
+
+        // 지도 상에 오버레이를 띄우는 함수 
+        function GroundOverlay(bounds, imgSrc) {
+            this.bounds = bounds;
+            var node = this.node = document.createElement('div');
+            node.className = 'node';
+
+            var img = this.img = document.createElement('img');
+            img.style.position = 'absolute';
+            img.src = imgSrc;
+            node.appendChild(img);
+        }
+
+        // 추상 오버레이 생성 
+        GroundOverlay.prototype = new kakao.maps.AbstractOverlay;
+
+        // 추상 오버레이위 오버레이 추가
+        GroundOverlay.prototype.onAdd = function () {
+            var panel = this.getPanels().overlayLayer;
+            panel.appendChild(this.node);
+        };
+
+        // 줌인 아웃 시 이미지를 원하는 bounds값에 맞게 표출하기 위해 img style을 정의 및 선언.
+        GroundOverlay.prototype.draw = function () {
+            var projection = this.getProjection();
+            var ne = projection.pointFromCoords(this.bounds.getNorthEast());
+            var sw = projection.pointFromCoords(this.bounds.getSouthWest());
+
+            var width = ne.x - sw.x;
+            var height = sw.y - ne.y;
+
+            this.img.style.top = ne.y + 'px';
+            this.img.style.left = sw.x + 'px';
+            this.img.style.width = width + 'px';
+            this.img.style.height = height + 'px';
+        }
+
+        // 추상 오버레이위 오버레이 삭제
+        GroundOverlay.prototype.onRemove = function () {
+            this.node.parentNode.removeChild(this.node);
+        };
+
+        // 고지도 레이어의 범위를 설정, SouthWest, NorthEast
+        var sw = new kakao.maps.LatLng(37.546729137510354, 126.94197163166994);
+        ne = new kakao.maps.LatLng(37.59924338068728, 127.01081438784172);
+        var bounds = new kakao.maps.LatLngBounds(sw, ne);
+
+        var sw2 = new kakao.maps.LatLng(37.55042344802905, 126.94343975440233);
+        ne2 = new kakao.maps.LatLng(37.602113819589064, 127.03102849282418);
+        var bounds2 = new kakao.maps.LatLngBounds(sw2, ne2);
+
+        // 지도를 표시할 div를 찾아 지도를 올림
+        var mapContainer = document.getElementById('map'),
+            mapOption = {
+                center: new kakao.maps.LatLng(37.586265082236686, 126.96736999643444),
+                level: 4 // 지도의 확대 레벨
+            };
+
+        // 마커 배열 초기화, 
+        var markers = [];
+
+        // 현재 위치 마커 
+        var currentPosMarker;
+
+        // 데스크톱, 모바일 다른 텍스처 사용 
+        var currentPosMarkerImage = new kakao.maps.MarkerImage(
+            'olgrimAssets/img/current-pos-marker.png',
+            new kakao.maps.Size(72, 72),
+        );
+        var contentsMarkerImage = new kakao.maps.MarkerImage(
+            'olgrimAssets/img/contents-marker.png',
+            new kakao.maps.Size(72, 72),
+        );
+        var m_currentPosMarkerImage = new kakao.maps.MarkerImage(
+            'olgrimAssets/img/m-current-pos-marker.png',
+            new kakao.maps.Size(144, 144),
+        );
+        var m_contentsMarkerImage = new kakao.maps.MarkerImage(
+            'olgrimAssets/img/m-contents-marker.png',
+            new kakao.maps.Size(144, 144),
+        );
+
+        // 위치별 콘텐츠 정보
+        var locations = [
+            {
+                title: '취미대',
+                latlng: new kakao.maps.LatLng(37.58702424446766, 126.97730482064999), //  마커2 위치
+                image: 'olgrimAssets/img/취미대.jpg',
+                explain: '<취미(翠微)>는 산 중턱을 뜻하며 취미대는 현재 청와대 동쪽 일대의 북악산 기슭에 있던 바위다. 대은암 동쪽 기슭 아래 펼쳐진 경관을 조망할 수 있는 비탈진 언덕의 바위를 지칭하는데 이 그림은 소나무가 있는 아래쪽에서 취미대를 올려본 모습이다. 취미대에 대한 기록은 이병연, 이병성 형제의 ‘장동 유람록’에서 확인되는데 조선 후기에 새로이 부상한 한양 명승지로 보인다. ',
+                contentLink: 'olgrimAssets/contents/취미대/',
+            },
+            {
+                title: '청송당',
+                latlng: new kakao.maps.LatLng(37.58852275990805, 126.9699731494341), //  마커3 위치
+                image: 'olgrimAssets/img/청송당.jpg',
+                explain: '<청송당>은 조선 조광조의 제자이며 대학자인 청송(聽松) 성수침(成守琛, 1493-1564)이 두문불출하며 공부했던 집을 그린 작품이다. 청송당 앞 냇가  큰 바위에는 ‘유란동(幽蘭洞)’이란 글씨가 있었고 또 뒷날 청송당이 사라지자 누군가가 청송당이 있던 터라는 뜻으로 ‘청송당 유지(聽松堂 遺址)’란 글씨를 새겨두었다. 지금 그 글씨 바위는 경기상업고등학교 뒤뜰에 자리 잡고 있는데 동네 이름이 유란동임에서 알 수 있듯 계곡이 깊은 땅이라 웬만한 산속보다도 훨씬 깊은 땅이었다. 이제 청송당은 사라졌지만, 당쟁에서 비켜선 채 흐르는 물과 불어대는 바람에 씻겨 날려 버리며 살던 성수침과 청송당이란 이름은 여전하다.  ',
+                contentLink: 'olgrimAssets/contents/청송당/',
+            },
+            {
+                title: '수성동',
+                latlng: new kakao.maps.LatLng(37.58198196824877, 126.96346599982581), //  마커4 위치
+                image: 'olgrimAssets/img/수성동.jpg',
+                explain: '수성동 계곡 좁은 돌틈 사이에 위치한 기린교에 대해 「신증동국여지승람」(新增東國輿地勝覽)에 "인왕산 기슭, 넓은 골짜기 깊숙한 곳에 있으니 바로 비해당(匪懈堂, 안평대군의 호)의 옛 집터이다. 시내가 흐르고 바위가 있는 경치 좋은 곳이 있어서 여름철에 노닐고 구경할 만하고, 다리가 있는데 기린교(麒麟橋)라 한다"라고 했다. 수성동 계곡은 청계천 발원지의 하나이기도 하다. 서울특별시 기념물 제31호로 지정되어 있다',
+                contentLink: 'olgrimAssets/contents/수성동/',
+            },
+            {
+                title: '백운동',
+                latlng: new kakao.maps.LatLng(37.58984417742363, 126.96701743519299), //  마커5 위치
+                image: 'olgrimAssets/img/백운동.jpg',
+                explain: '백운동은 주변 경관이 빼어나고 아름답기로 유명한 명소로 백운동 계곡을 흘러내리는 백운동천은 청계천의 발원지이다. 그림 『백운동』에서는 나귀를 타고 가는 인물이 전경에 보이며, 둥글고 원만하게 나타낸 산세, 수묵에 담채색을 더하였고 편필의 능란한 소나무 묘법이나 기슭의 습윤한 선묘와 듬성듬성 찍은 묵점 등에서 정선 특유의 개성이 돋보인다.',
+                contentLink: 'olgrimAssets/contents/백운동/',
+            },
+            {
+                title: '필운대',
+                latlng: new kakao.maps.LatLng(37.57841934134036, 126.96616209369064), //  마커6 위치
+                image: 'olgrimAssets/img/필운대.jpg',
+                explain: '필운대는 오늘날의 배화여자고등학교 본관 뒤뜰에 자리하였고, 조선시대에는 사직단 뒷길로 이어진 곳에 위치한 암벽으로 된 돈대를 말한다. ‘대’는 높은 언덕에 위치한 평탄한 지형이나 또는 돌과 흙으로 쌓아올린 지대를 지칭한다. 인왕산 남서쪽 산기슭 중턱에 널찍한 평지로 이루어진 이 장소는 도성 안을 조망할 수 있었기 때문에, 한양의 명승지로 알려졌다. 필운대가 이름 붙여진 연유는 이항복이 이곳에 있던 石壁에 ‘弼雲臺’라는 刻字를 새겼기 때문이라고 유본예의 <한경지략>에서 말했다. 이항복은 필운산에서 처가살이를 하였고 자신의 별호를 필운이라 지었다고 한다.',
+                contentLink: 'olgrimAssets/contents/필운대/',
+            },
+            {
+                title: '창의문',
+                latlng: new kakao.maps.LatLng(37.592630351756206, 126.96650667224574), //  마커7 위치
+                image: 'olgrimAssets/img/창의문.jpg',
+                explain: '<창의문>은 한양도성 사소문의 하나로 서북쪽에 있는 문이다. 조선 태조 때 건립되어, 풍수지리설에 의해 폐쇄되거나 상황에 따라 통행을 재개하였고 임진왜란 때 문루가 불타 없어져 1741년 영조의 명으로 중건되었다. <창의문>은, 성문 양 옆으로 북악산, 인왕산 능선을 따라 이어진 성곽과 성문 아래로 구불구불하게 묘사된 창의문 길, 성문의 문루와 수직소의 부속건물들, 인왕산, 북악산 계곡과 산의 모습을 화면에 꽉 차도록 묘사했다. 이 창의문 그림은 창의문 중건이 1741년 이후에 이루어졌다는 기록에 의거하여 인문학적 자료가 되었다.',
+                contentLink: 'olgrimAssets/contents/창의문/'
+            },
+            {
+                title: '독락정',
+                latlng: new kakao.maps.LatLng(37.58649214144406, 126.9747575245202), //  마커7 위치
+                image: 'olgrimAssets/img/독락정.jpg',
+                explain: '북악산을 배경으로 계곡물이 흐르고 양 옆 큰 바위산 사이에 그윽하게 놓여 있는 ‘독락정’은  1673년 무렵 김수흥이 지은 장동 김문의 상징적인 장소이다. 사적인 공간을 명승지로 표현한 것은 겸재 정선과 장동인의 관심을 반영한 것으로 보인다. 독락이라는 당호는 김수흥이 은거의 이상을 실현하기 위해 붙인 이름이며, 승경을 와유하는 이상을 실현시키기 위한 공간으로 송시열의 지지를 받았던 것으로 보인다. <독락정>은 냇가에 네모난 주춧돌을 놓고 사각기둥을 세운 사모정의 초가 정자와 정자 위쪽의 비둘기 바위, 우뚝 솟은 북악의 봉우리가 그려져 있어 북악산 중턱의 전경임을 알 수 있다.',
+                contentLink: 'olgrimAssets/contents/독락정/',
+            },
+            {
+                title: '청휘각',
+                latlng: new kakao.maps.LatLng(37.58404800365498, 126.96514625723782),
+                image: 'olgrimAssets/img/청휘각.jpg',
+                explain: '인왕산 옥류동은 인왕산 중턱의 영험한 샘물이 흐르던 골짜기였다. 장동의 무속헌과 청풍계, 옥류동은 장동 김씨들의 터전이었다. 김수항은 1683년 경 옥류동에 ‘육청헌’이란 살림집을 마련하고 1686년에 샘 부근에 ‘청휘각’을 지었다. 청휘각은 ‘비 갠 뒤 맑은 햇빛이 찬란하게 비치는 집’이란 의미이다. 김수항의 문집인 『문곡집』에 청휘각을 소재로 쓴 시가 있어 청휘각 건립년도를 추측할 수 있다. 청휘각은 기와를 얹은 사모정으로 뒤쪽 암벽 아래 시내가 흐르고 정자의 주변은 버드나무, 미루나무가 둘러싸고 있는데 인왕산 언덕과 골짜기가 굽이치게 표현되었다. ',
+                contentLink: 'olgrimAssets/contents/청휘각',
+            },
+            {
+                title: '대은암',
+                latlng: new kakao.maps.LatLng(37.587537388990924, 126.97521005924348),
+                image: 'olgrimAssets/img/대은암.jpg',
+                explain: '현재 청와대 자리인 북악산 남쪽 기슭을 일컫는 동네 이름이 대은암동이었다. 조선 중종 때 남곤이 빼어난 경치를 사랑하여 집을 짓고 살았는데 박은과 이행이 술을 들고 남곤의 집을 찾아가도 승지 벼슬을 지내던 남곤이 새벽에 나갔다 밤에 돌아오니 함께 놀 수가 없었다. 박은은 집 뒤의 바위를 만날 수 없는 주인에 빗대 대은암이라 하고 그 아래 흐르는 시내를 만리뢰라고 했다. 겸재 정선이 이 그림을 그릴 때는 겸재의 친구였던 신치복이 살고 있었는데 ‘장동팔경’ 중 하나로 즐겨 그렸다.',
+                contentLink: 'olgrimAssets/contents/대은암/',
+            },
+        ];
+
+        // 온로드 함수, 거의 모든 설정을 onload에서 해야함 
+        window.onload = function () {
+            loadMap(); //지도 로드
+            overlay = new GroundOverlay(bounds, 'olgrimAssets/img/KakaoTalk_Photo_2023-06-20-12-20-25 002.png'); // 오버레이 1은 현재는 안씀
+            overlay2 = new GroundOverlay(bounds2, 'olgrimAssets/img/dosung.jpeg'); // 현재 사용중인 고지도 오버레이
+
+            // 모바일 상황이면 마커의 텍스처를 모바일용 텍스처로 변경
+            const isTouchDevice = (navigator.maxTouchPoints || 'ontouchstart' in document.documentElement);
+            if (isTouchDevice) {
+                contentsMarkerImage = m_contentsMarkerImage;
+                currentPosMarkerImage = m_currentPosMarkerImage;
+            }
+
+            // html5 geolocation 접근이 가능하면 사용 하도록 설정 
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const time = new Date(position.timestamp);
+                    var lat = position.coords.latitude, // 위도
+                        lon = position.coords.longitude; // 경도
+
+                    var locPosition = new kakao.maps.LatLng(lat, lon); // 마커가 표시될 위치를 geolocation으로 얻어온 좌표로 생성
+
+                    var message = '<div class="customoverlay">' +
+                        '  <a href ="#">' +
+                        '    <span class="title">현재위치</span>' +
+                        '  </a>' +
+                        '</div>'; // current pos marker 에 표시될 내용
+
+                    var iwContent = message, // 인포윈도우에 표시할 내용
+                        iwRemoveable = true;
+
+                    currentPosMarker = new kakao.maps.Marker({
+                        image: currentPosMarkerImage,
+                        map: map,
+                        position: locPosition,
+                        draggable: true,
+                        zIndex: 5,
+                    });
+
+                    // 인포윈도우를 생성
+                    var infowindow = new kakao.maps.CustomOverlay({
+                        map: null,
+                        position: locPosition,
+                        content: message,
+                        yAnchor: 0.7,
+                        zIndex: 6
+                    });
+
+                    // 인포윈도우를 마커위에 표시
+                    infowindow.setMap(map);
+
+                    kakao.maps.event.addListener(currentPosMarker, 'dragstart', function () {
+                        infowindow.setMap(null);
+                    });
+
+                    kakao.maps.event.addListener(currentPosMarker, 'dragend', function () {
+                        // 출발 마커의 드래그가 시작될 때 마커 이미지를 변경
+                        checkNear(currentPosMarker);
+                        locPosition = currentPosMarker.getPosition();
+                        infowindow.setPosition(locPosition);
+                        infowindow.setMap(map);
+                    });
+
+                    // 지도 중심좌표를 접속위치로 변경
+                    map.setCenter(locPosition);
+                    console.log("" + locPosition.getLat() + " " + locPosition.getLng());
+
+                    // 드래그로 마커 위치를 변경한 상태에서 그 위치를 유지하고 싶을 때
+                    locPosition = currentPosMarker.getPosition();
+                });
+            }
+            else {
+                alert("GPS를 지원하지 않습니다");
+            }
+
+            // 일정 주기 마다 현재 위치를 받아 옴
+            setInterval(changeLocation(), 1000);
+
+            // for 문을 돌면서 마커 생성 후 내용 설정
+            for (var i = 0; i < locations.length; i++) {
+                // 마커 생성
+                markers[i] = new kakao.maps.Marker({
+                    image: contentsMarkerImage,
+                    position: locations[i].latlng,
+                    clickable: true,
+                    map: map,
+                    zIndex: 5,
+                });
+
+                // 마커 내용 설정
+                var placeTitle = locations[i].title;
+                var pos = locations[i].latlng;
+                var image = locations[i].image;
+                var explain = locations[i].explain;
+
+                // 콘텐츠가 있을 경우 링크 설정
+                if (locations[i].contentLink) {
+                    var link = locations[i].contentLink;
+                    kakao.maps.event.addListener(markers[i], 'click', pictureExplain(map, pos, placeTitle, image, explain, link));
+                }
+                // 콘텐츠 링크가 없을 경우 link는 설정하지 않음 
+                else {
+                    kakao.maps.event.addListener(markers[i], 'click', pictureExplain(map, pos, placeTitle, image, explain));
+                }
+
+                // 마커의 이름 오버레이 설정
+                var content = '<div class="customoverlay">' +
+                    '  <a href ="#">' +
+                    '    <span class="title">' + locations[i].title + '</span>' +
+                    '  </a>' +
+                    '</div>';
+
+                // 이름 오버레이 생성 
+                var customOverlay = new kakao.maps.CustomOverlay({
+                    map: null,
+                    position: pos,
+                    content: content,
+                    yAnchor: 0.5,
+                    zIndex: 6
+                });
+
+                // 이벤트 리스너 연결, 마커 위에 커서를 올리면 이름 오버레이가 보임
+                kakao.maps.event.addListener(markers[i], 'mouseover', openInfoOverlay(customOverlay, map, markers[i]));
+                kakao.maps.event.addListener(markers[i], 'mouseout', closeInfoOverlay(customOverlay, map, markers[i]));
+            }
+        }
+
+
+
+
+        const changeLocation = () => {
+            var locPosition;
+            if (navigator.geolocation) {
+                // GPS를 지원하면
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        // position 객체 내부에 timestamp(현재 시간)와 coords 객체
+                        const time = new Date(position.timestamp);
+
+                        var lat = position.coords.latitude, // 위도
+                            lon = position.coords.longitude; // 경도
+
+                        currentPosMarker.setPosition(new kakao.maps.LatLng(lat, lon));
+                    },
+                    (error) => {
+                        console.error(error);
+                    },
+                    { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 }
+                );
+            } else {
+                alert("GPS를 지원하지 않습니다");
+            }
+        };
+
+        function checkNear(marker) {
+            for (var i = 0; i < locations.length; i++) {
+                var pos = locations[i].latlng;
+                var markerPos = marker.getPosition();
+                var poly = new kakao.maps.Polyline({
+                    path: [pos, markerPos]
+                });
+                var dist = poly.getLength(); // m 단위로 리턴
+                if (dist < 100) {
+                    var toastLiveExample = document.getElementById('liveToast');
+                    var toastInfo = document.getElementById('toastInfo');
+                    toastInfo.innerHTML = '<div class="toast-body" id="toastInfo" >' + locations[i].title + '의 근처에 있습니다</div>';
+                    var toast = new bootstrap.Toast(toastLiveExample);
+                    toast.show();
+                }
+            }
+        };
+
+        // 지도에 마커와 인포윈도우를 표시하는 함수
+        function displayMarker(locPosition, message) {
+
+            // 마커를 생성
+            var marker = new kakao.maps.Marker({
+                map: map,
+                position: locPosition
+            });
+
+            var iwContent = message, // 인포윈도우에 표시할 내용
+                iwRemoveable = true;
+
+            // 인포윈도우를 생성
+            var infowindow = new kakao.maps.InfoWindow({
+                content: iwContent,
+                removable: iwRemoveable
+            });
+
+            // 인포윈도우를 마커위에 표시
+            infowindow.open(map, marker);
+
+            // 지도 중심좌표를 접속위치로 변경
+            map.setCenter(locPosition);
+            console.log("" + locPosition.getLat() + " " + locPosition.getLng());
+        }
+
+        // 지도 확대, 축소 컨트롤에서 확대 버튼을 누르면 호출되어 지도를 확대하는 함수
+        function zoomIn() {
+            map.setLevel(map.getLevel() - 1);
+        }
+
+        // 지도 확대, 축소 컨트롤에서 축소 버튼을 누르면 호출되어 지도를 확대하는 함수
+        function zoomOut() {
+            map.setLevel(map.getLevel() + 1);
+        }
+
+        function pictureExplain(map, pos, title, image, explain, link = null, ARLink = null) {
+            return function () {
+                $("#menu,.page_cover,html").addClass("open");
+                window.location.hash = "#open";
+                document.getElementById('menu').scrollTo(0, 0);
+                map.panTo(pos);
+                var getTitle = document.getElementById("title");
+                getTitle.textContent = title;
+                var getImage = document.getElementById("content_image");
+                getImage.src = image;
+                var getExplain = document.getElementById("explain");
+                getExplain.textContent = explain;
+                if (link) {
+                    document.getElementById("simpleContent").setAttribute('onClick', ("location='" + link + "';"));
+                    document.getElementById("simpleContent").removeAttribute('disabled');
+                }
+                else {
+                    document.getElementById("simpleContent").setAttribute('onClick', ("location.href='../../Unavaliable.html';"))
+                    document.getElementById("simpleContent").setAttribute('disabled', true);
+                }
+            }
+        }
+
+        function oldMapSwitch() {
+            if (overlay2.getMap() == map) {
+                overlay2.setMap(null);
+                map.removeOverlayMapTypeId(kakao.maps.MapTypeId.WHITE_MAP);
+            }
+            else {
+                map.addOverlayMapTypeId(kakao.maps.MapTypeId.WHITE_MAP);
+                overlay2.setMap(map);
+            }
+        }
+
+        function openInfoWindow(infowindow, map, marker) {
+            return function () {
+                infowindow.open(map, marker);
+            };
+        }
+
+        function closeInfoWindow(infowindow, map, marker) {
+            return function () {
+                infowindow.close();
+            };
+        }
+
+        function openInfoOverlay(infoOverlay, map, marker) {
+            return function () {
+                infoOverlay.setMap(map);
+            };
+        }
+
+        function closeInfoOverlay(infoOverlay, map, marker) {
+            return function () {
+                infoOverlay.setMap(null);
+            };
+        }
+
+        function placeList() {
+
+            let list = document.querySelector(".place_list");
+            list.classList.toggle("active");
+        }
+
+        function markerSwitcher(i) {
+            if (markers[i].getVisible() == true) {
+                markers[i].setVisible(false);
+            }
+            else {
+                markers[i].setVisible(true);
+            }
+        }
+
+    </script>
+
+    <!-- Vendor JS Files -->
+    <script src="mainAssets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="mainAssets/vendor/aos/aos.js"></script>
+    <script src="mainAssets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="mainAssets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="mainAssets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="mainAssets/vendor/purecounter/purecounter_vanilla.js"></script>
+    <script src="mainAssets/vendor/php-email-form/validate.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="mainAssets/js/main.js"></script>
+</body>
+
+</html>

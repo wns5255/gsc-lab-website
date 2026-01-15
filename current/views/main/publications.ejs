@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Publications – GSC Lab</title>
+
+    <!-- favicon & fonts & global -->
+    <link rel="icon" type="image/x-icon" href="/assets/gsc_logo-DsAFOfte.svg" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/globals.css" />
+
+    <!-- FontAwesome (선택) -->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+
+    <!-- Page-only styles -->
+    <style>
+        /* ===== Research / Publications ===== */
+        .pub-wrap{padding:90px 16px;}
+        .pub-title{font-size:48px; font-weight:800; color:#0f294a; letter-spacing:.3px}
+        .pub-section{margin-top:24px}
+        .pub-section h3{
+        font-style:italic; font-weight:800; font-size:32px; margin:10px 0 14px;
+        }
+
+        /* 좌우 2단: [좌] 그림 고정폭 + [우] 텍스트 가변폭 */
+        .pub-row{
+        display:grid;
+        grid-template-columns: clamp(240px, 28vw, 340px) minmax(0,1fr);
+        gap: 24px;
+        align-items: start;
+        }
+
+        /* 그림 컬럼: 카드 느낌 + 비율 고정 */
+        .pub-col-fig .fig{
+        }
+        .pub-col-fig .fig + .fig{margin-top:12px}
+
+        /* 이미지: 박스 채우되 잘려 보이지 않게(contain) – 필요시 cover로 변경 */
+        .pub-col-fig img{
+        width:100%;
+        height:60%;
+        aspect-ratio: 16 / 9;
+        object-fit: contain;
+        display:block;
+        }
+
+        /* 리스트 타이포 */
+        .pub-list{list-style:none; padding:0; margin:0}
+        .pub-item{display:flex; gap:12px; margin:18px 0 22px}
+        .pub-item .dot{
+        width:8px; height:8px; border-radius:50%;
+        background:#0f294a; margin-top:10px; flex:0 0 8px
+        }
+        .pub-item .content a{
+        color:#1347c8; text-decoration:underline; text-underline-offset:2px;
+        font-size:20px; line-height:1.35;
+        }
+        .pub-item .content a:hover{opacity:.85}
+        .pub-item .authors{margin:6px 0 6px; color:#0f172a; font-size:16px}
+        .pub-item .venue{font-weight:800; color:#0f172a; font-size:18px}
+        .pub-item .venue .tag{font-weight:700; color:#b42318; margin-left:4px}
+
+        /* 반응형: 태블릿부터 1단, 그림은 가운데 정렬 */
+        @media (max-width: 992px){
+        .pub-title{font-size:40px}
+        .pub-row{
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        .pub-col-fig{max-width: 680px; margin: 0 auto;}
+        }
+    </style>
+  </head>
+
+  <body id="page-top">
+    <!-- Nav (기존과 동일) -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+      <div class="container">
+        <a class="navbar-brand" href="/" id="logoChange">
+          <img src="/assets/gsc_logo.png" alt="GSC Lab" />
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarResponsive" aria-controls="navbarResponsive"
+                aria-expanded="false" aria-label="Toggle navigation">
+          Menu <i class="fas fa-bars ms-1"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="/research">Publications</a></li>
+            <li class="nav-item"><a class="nav-link" href="/team">Professor</a></li>
+            <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="container pub-wrap">
+        <br>
+        <br>
+      <h1 class="pub-title text-center">Publications</h1>
+        <br>
+
+      <!-- Section: Patent -->
+      <section class="pub-section" style="margin-top:36px">
+        <div class="pub-row">
+          <div class="pub-col-fig">
+            <figure class="fig">
+              <img src="/assets/research/02.png" alt="SAFE bar chart" />
+            </figure>
+          </div>
+
+          <div>
+            <ul class="pub-list">
+                <li class="pub-item">
+                <span class="dot"></span>
+                <div class="content">
+                  <a href="https://www.riss.kr/link?id=T17255367" target="_blank" rel="noopener">
+                    Historical Metaverse : Historical Cultural Content and Lifelogging
+                  </a>
+                  <div class="authors">
+                    <strong>Mijin Kim</strong>, Dongho Kim
+                  </div>
+                  <div class="venue">숭실대학교 박사학위논문</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+        <section class="pub-section" style="margin-top:36px">
+        <div class="pub-row">
+          <div class="pub-col-fig">
+            <figure class="fig">
+              <img src="/assets/research/01.png" alt="SAFE bar chart" />
+            </figure>
+          </div>
+
+          <div>
+            <ul class="pub-list">
+                <li class="pub-item">
+                <span class="dot"></span>
+                <div class="content">
+                  <a href="https://scholarworks.bwise.kr/ssu/handle/2018.sw.ssu/50084" target="_blank" rel="noopener">
+                    A Study on the Type of Historical Cultural Contents in Spacetime Metaverse
+                  </a>
+                  <div class="authors">
+                    <strong>Mijin Kim</strong>, Dongho Kim
+                  </div>
+                  <div class="venue">한국융합과학회</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    <section class="pub-section" style="margin-top:36px">
+        <div class="pub-row">
+          <div class="pub-col-fig">
+            <figure class="fig">
+              <img src="/assets/research/03.png" alt="SAFE bar chart" />
+            </figure>
+          </div>
+
+          <div>
+            <ul class="pub-list">
+                <li class="pub-item">
+                <span class="dot"></span>
+                <div class="content">
+                  <a href="http://journal.cg-korea.org/archive/view_article?pid=jkcgs-30-3-133" target="_blank" rel="noopener">
+                    Location-based Space-Time Interlinked Extended Reality using HMD
+                  </a>
+                  <div class="authors">
+                    <strong>Ahyeon Park</strong>, Sangjoon Bae, Mijin Kim, Woohyun Lee, Dongho Kim
+                  </div>
+                  <div class="venue">KCGS(한국컴퓨터그래픽스학회논문지)</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+    </section>
+
+    <section class="pub-section" style="margin-top:36px">
+        <div class="pub-row">
+          <div class="pub-col-fig">
+            <figure class="fig">
+              <img src="/assets/research/04.png" alt="SAFE bar chart" />
+            </figure>
+          </div>
+
+          <div>
+            <ul class="pub-list">
+                <li class="pub-item">
+                <span class="dot"></span>
+                <div class="content">
+                  <a href="https://www.dbpia.co.kr/Journal/articleDetail?nodeId=NODE11714644" target="_blank" rel="noopener">
+                    Implementation of Virtual Reality Interactive Content based on Real-time Face Tracking Technology
+                  </a>
+                  <div class="authors">
+                    <strong>Woohyeon Lee</strong>, Sangjoon Bae, Dongho Kim
+                  </div>
+                  <div class="venue">한국HCI학회 학술대회</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+    </section>
+
+    <section class="pub-section" style="margin-top:36px">
+        <div class="pub-row">
+          <div class="pub-col-fig">
+            <figure class="fig">
+              <img src="/assets/research/05.png" alt="SAFE bar chart" />
+            </figure>
+          </div>
+
+          <div>
+            <ul class="pub-list">
+                <li class="pub-item">
+                <span class="dot"></span>
+                <div class="content">
+                  <a href="https://www.dbpia.co.kr/Journal/articleDetail?nodeId=NODE11714817" target="_blank" rel="noopener">
+                    Design of Location-based Service Interface Connecting Old and Modern Maps
+                  </a>
+                  <div class="authors">
+                    <strong>Mijin Kim</strong>, Sangjoon Bae, Dongho Kim
+                  </div>
+                  <div class="venue">한국HCI학회 학술대회</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+    </section>
+
+    <section class="pub-section" style="margin-top:36px">
+        <div class="pub-row">
+          <div class="pub-col-fig">
+            <figure class="fig">
+              <img src="/assets/research/06.png" alt="SAFE bar chart" />
+            </figure>
+          </div>
+
+          <div>
+            <ul class="pub-list">
+                <li class="pub-item">
+                <span class="dot"></span>
+                <div class="content">
+                  <a href="https://www.riss.kr/link?id=T17142997" target="_blank" rel="noopener">
+                    A Study on the Non-Photorealistic Rendering Method of Landscape Painting based on 3D Gaussian Splatting
+                  </a>
+                  <div class="authors">
+                    <strong>Woohyeon Lee</strong>, Dongho Kim
+                  </div>
+                  <div class="venue">숭실대학교 석사학위논문</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-5">
+      <div class="container text-center small text-muted">© GSC Lab</div>
+    </footer>
+
+    <!-- Bootstrap bundle + site scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/scripts.js"></script>
+  </body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 이름</title>
+    <link rel="stylesheet" href="../plyAssets/index_css.css">
+
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .unique-button-class {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 핸드폰(최대 768px 이하)에서 버튼을 세로로 배열되게 하는 미디어 쿼리 */
+        @media (max-width: 768px) {
+            .button-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+    
+</head>
+
+<body>
+    <h1>이름</h1>
+
+    <div class="button-container">
+        <button type="button" class="unique-button-class" id="room-scale-button">
+            <div class="lazyload" style="background-image: url(../plyAssets/images/room.jpg);">
+                <span></span>
+            </div>
+            <h2>Room Scale</h2>
+            <h3>돌아다닐 수 있는 크기</h3>
+        </button>
+
+        <button class="unique-button-class" id="object-scale-button">
+            <div class="lazyload" style="background-image: url(../plyAssets/images/object.jpg);">
+                <span></span>
+            </div>
+            <h2>Object Scale</h2>
+            <h3>손으로 들 수 있는 크기</h3>
+        </button>
+    </div>
+
+
+</body>
+<script>
+
+
+    document.getElementById('room-scale-button').addEventListener('click', function () {
+        window.location.href = '/ply/select/room';
+    });
+
+    document.getElementById('object-scale-button').addEventListener('click', function () {
+        window.location.href = '/ply/select/obj';
+    });
+</script>
+
+</html>

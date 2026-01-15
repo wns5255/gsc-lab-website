@@ -1,0 +1,60 @@
+<osm version="0.6" generator="CGImap 0.9.2 (341 production-osm-seed-web-5bf858585b-h2qjd)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+    <way id="198939518" visible="true" version="4" changeset="139341" timestamp="2024-10-09T01:03:14Z" user="hangukhistory" uid="11927">
+        <nd ref="921242756"/>
+        <nd ref="2097495693"/>
+        <nd ref="2097495694"/>
+        <nd ref="2121505949"/>
+        <nd ref="2097495695"/>
+        <nd ref="2124566794"/>
+        <nd ref="2097495696"/>
+        <nd ref="2121505950"/>
+        <nd ref="2097495697"/>
+        <nd ref="2097495698"/>
+        <nd ref="2099414009"/>
+        <nd ref="2097495699"/>
+        <nd ref="2097495700"/>
+        <nd ref="2097495701"/>
+        <nd ref="2097495702"/>
+        <nd ref="2097495703"/>
+        <nd ref="2097495704"/>
+        <nd ref="2097495705"/>
+        <nd ref="2097495706"/>
+        <nd ref="2097495707"/>
+        <nd ref="2097495708"/>
+        <nd ref="2097495709"/>
+        <nd ref="2097495710"/>
+        <nd ref="2097495711"/>
+        <nd ref="2097495712"/>
+        <nd ref="2097495713"/>
+
+        <node id="921242756" visible="true" version="8" changeset="139506" timestamp="2024-10-10T05:43:40Z" user="hangukhistory" uid="11927" lat="37.5690776" lon="126.9783274"/>
+        <node id="2097495693" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5693820" lon="126.9783694"/>
+        <node id="2097495694" visible="true" version="6" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5702849" lon="126.9783941"/>
+        <node id="2121505949" visible="true" version="4" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5717163" lon="126.9784653"/>
+        <node id="2097495695" visible="true" version="8" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5729388" lon="126.9785608"/>
+        <node id="2124566794" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5731160" lon="126.9785183"/>
+        <node id="2097495696" visible="true" version="7" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5735033" lon="126.9784895"/>
+        <node id="2121505950" visible="true" version="4" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5740481" lon="126.9785102"/>
+        <node id="2097495697" visible="true" version="6" changeset="139409" timestamp="2024-10-09T16:15:55Z" user="hangukhistory" uid="11927" lat="37.5743884" lon="126.9785087"/>
+        <node id="2097495698" visible="true" version="4" changeset="139409" timestamp="2024-10-09T16:15:55Z" user="hangukhistory" uid="11927" lat="37.5746934" lon="126.9786545"/>
+        <node id="2099414009" visible="true" version="5" changeset="139409" timestamp="2024-10-09T16:15:55Z" user="hangukhistory" uid="11927" lat="37.5749887" lon="126.9787830"/>
+        <node id="2097495699" visible="true" version="4" changeset="139407" timestamp="2024-10-09T16:05:37Z" user="hangukhistory" uid="11927" lat="37.5752934" lon="126.9791984"/>
+        <node id="2097495700" visible="true" version="4" changeset="139407" timestamp="2024-10-09T16:05:37Z" user="hangukhistory" uid="11927" lat="37.5755311" lon="126.9793677"/>
+        <node id="2097495701" visible="true" version="4" changeset="139407" timestamp="2024-10-09T16:05:37Z" user="hangukhistory" uid="11927" lat="37.5757759" lon="126.9794853"/>
+        <node id="2097495702" visible="true" version="4" changeset="139407" timestamp="2024-10-09T16:05:37Z" user="hangukhistory" uid="11927" lat="37.5762266" lon="126.9796608"/>
+        <node id="2097495703" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5775666" lon="126.9796599"/>
+        <node id="2097495704" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5788478" lon="126.9797032"/>
+        <node id="2097495705" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5802101" lon="126.9800753"/>
+        <node id="2097495706" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5807800" lon="126.9802517"/>
+        <node id="2097495707" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5809598" lon="126.9803339"/>
+        <node id="2097495708" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5811378" lon="126.9806233"/>
+        <node id="2097495709" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5814525" lon="126.9812828"/>
+        <node id="2097495710" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5817801" lon="126.9814563"/>
+        <node id="2097495711" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5821805" lon="126.9818136"/>
+        <node id="2097495712" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5824749" lon="126.9818203"/>
+        <node id="2097495713" visible="true" version="3" changeset="139366" timestamp="2024-10-09T09:20:37Z" user="hangukhistory" uid="11927" lat="37.5834431" lon="126.9818195"/>
+        <tag k="end_date" v="1957"/>
+        <tag k="name" v="삼청동천"/>
+        <tag k="waterway" v="stream"/>
+    </way>
+</osm>

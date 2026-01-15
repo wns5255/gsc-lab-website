@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지명 연결 그래프 및 고지도 목록 (카카오맵 통합)</title>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=4bb276d241fb320936df581512dc8f62&libraries=services"></script>
+    
+    <link rel="stylesheet" href="css/oldMap.css"> 
+</head>
+<body>
+    <div class="map-section">
+        <div id="kakao-map-container"></div>
+        
+        <div class="address-search-container">
+            <input type="text" id="addressInput" placeholder="주소 또는 지명을 입력하세요 (예: 서울특별시청 또는 경복궁)">
+            <button id="searchAddressBtn">검색</button>
+        </div>
+
+        <div id="place-list-overlay">
+            <span class="close-btn" onclick="document.getElementById('place-list-overlay').classList.remove('visible');">&times;</span>
+            <h3 id="overlay-title">검색 결과: <span id="overlay-selected-name"></span></h3>
+            <div id="overlay-search-result"></div>
+            <div id="overlay-place-list-content-container">
+                <h4>장소 검색 결과</h4>
+                <div id="overlay-place-list-content">
+                    <p class="overlay-no-maps-message">장소 검색 결과가 여기에 표시됩니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="selected-address-output"></div>
+    </div>
+
+    <div class="graph-container" id="graph-container">
+        <h1>지명 연결 그래프</h1>
+    </div>
+
+    <div class="map-list-section" id="map-list-section">
+        <div class="map-list-header">
+            <h3>고지도 목록</h3>
+            <span id="mapListSearchTerm"></span> </div>
+        <div id="permanent-map-list-content">
+            <p class="no-maps-message">관련 고지도 목록이 여기에 표시됩니다. <br> 검색창에 지명을 입력하거나 그래프 노드를 클릭해보세요.</p>
+        </div>
+    </div>
+
+    <div id="fileUploadNavbar">
+        <button id="toggleNavbarBtn">파일</button>
+        <div class="navbar-content">
+            <div class="file-input-group">
+                <p><strong>1. 지명 연결 그래프 데이터 (CSV):</strong></p>
+                <input type="file" id="nodeFileInput" accept=".csv">
+            </div>
+            <div class="file-input-group">
+                <p><strong>2. 고지도 목록 데이터 (CSV):</strong></p>
+                <input type="file" id="mapFileInput" accept=".csv">
+            </div>
+            <div id="errorMessage" class="error-error-message"></div>
+        </div>
+    </div>
+
+<script>
+    // DOM 요소 참조
+    const container = document.getElementById('graph-container');
+    const nodeFileInput = document.getElementById('nodeFileInput');
+    const mapFileInput = document.getElementById('mapFileInput');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const kakaoMapContainer = document.getElementById('kakao-map-container');
+
+    const fileUploadNavbar = document.getElementById('fileUploadNavbar');
+    const toggleNavbarBtn = document.getElementById('toggleNavbarBtn');
+
+    const addressInput = document.getElementById('addressInput');
+    const searchAddressBtn = document.getElementById('searchAddressBtn');
+
+    // 오버레이 관련 요소 (장소 검색 결과만 담당)
+    const placeListOverlay = document.getElementById('place-list-overlay'); // 이름 변경
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlaySelectedNameSpan = document.getElementById('overlay-selected-name');
+    const overlaySearchResultDiv = document.getElementById('overlay-search-result');
+    const overlayPlaceListContentDiv = document.getElementById('overlay-place-list-content'); // 장소 검색 결과 목록 div
+
+    // 고지도 목록 섹션 관련 요소
+    const mapListSection = document.getElementById('map-list-section');
+    const mapListSearchTermSpan = document.getElementById('mapListSearchTerm');
+    const permanentMapListContentDiv = document.getElementById('permanent-map-list-content'); // 고정된 고지도 목록 div
+
+    // 새로 추가된 주소 출력 영역
+    const selectedAddressOutputDiv = document.getElementById('selected-address-output');
+
+    // 전역 변수 선언
+    let draggedItem = null;
+    let nodesData = []; // 지명 연결 그래프용 노드 데이터
+    let mapData = []; // 고지도 목록 데이터
+    let map = null; // 카카오맵 객체
+    let ps = null; // 장소 검색 객체 (Places Service)
+    let markers = []; // 검색 결과 마커들을 담을 배열
+    let infowindow = null; // 인포윈도우 객체
+
+    // --- 카카오맵 초기화 함수 ---
+    function initKakaoMap() {
+        if (!kakaoMapContainer) {
+            console.error("카카오맵 컨테이너를 찾을 수 없습니다: #kakao-map-container");
+            return;
+        }
+
+        const mapOptions = {
+            center: new kakao.maps.LatLng(37.566826, 126.9786567), // 서울 시청 중심 좌표
+            level: 3 // 지도의 확대 레벨
+        };
+
+        if (map) { // 지도가 이미 생성되어 있다면 재설정
+            map.setCenter(mapOptions.center);
+            map.setLevel(mapOptions.level);
+            removeMarkers(); // 기존 마커 모두 제거
+            infowindow.close(); // 기존 인포윈도우 닫기
+        } else { // 지도가 없다면 새로 생성
+            map = new kakao.maps.Map(kakaoMapContainer, mapOptions);
+            ps = new kakao.maps.services.Places(); // Places 객체 생성
+            infowindow = new kakao.maps.InfoWindow({ zIndex: 1 }); // 인포윈도우 객체 생성
+        }
+        console.log("카카오맵 초기화 완료.");
+        // 지도 초기화 시 출력 영역 숨김
+        selectedAddressOutputDiv.classList.remove('visible');
+        selectedAddressOutputDiv.textContent = '';
+    }
+
+    // 마커 배열에 추가된 마커들을 지도에서 삭제하는 함수
+    function removeMarkers() {
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(null);
+        }
+        markers = [];
+    }
+
+    // --- 내비게이션 바 토글 기능 ---
+    toggleNavbarBtn.addEventListener('click', () => {
+        fileUploadNavbar.classList.toggle('open');
+        toggleNavbarBtn.textContent = fileUploadNavbar.classList.contains('open') ? '닫기' : '파일';
+    });
+
+    // --- 파일 입력 처리 ---
+    nodeFileInput.addEventListener('change', (event) => handleFileSelect(event, 'nodes'));
+    mapFileInput.addEventListener('change', (event) => handleFileSelect(event, 'maps'));
+
+    function handleFileSelect(event, fileType) {
+        const file = event.target.files[0];
+        errorMessageDiv.textContent = ''; // 에러 메시지 초기화
+
+        if (!file) {
+            return;
+        }
+
+        if (file.type !== 'text/csv') {
+            errorMessageDiv.textContent = 'CSV 파일만 선택해주세요.';
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const csvText = e.target.result;
+            if (fileType === 'nodes') {
+                parseNodesCSVAndDrawGraph(csvText);
+            } else if (fileType === 'maps') {
+                parseMapsCSV(csvText);
+            }
+        };
+
+        reader.onerror = function() {
+            errorMessageDiv.textContent = `파일을 읽는 도중 오류가 발생했습니다: ${file.name}`;
+        };
+
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    // --- 지명 연결 그래프 CSV 파싱 및 그리기 ---
+    function parseNodesCSVAndDrawGraph(csvText) {
+        nodesData = [];
+        container.innerHTML = '<h1>지명 연결 그래프</h1>'; // 그래프 초기화
+
+        const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+
+        if (lines.length <= 1) {
+            errorMessageDiv.textContent = '지명 CSV 파일에 데이터가 없거나 헤더만 있습니다.';
+            return;
+        }
+
+        const dataRows = lines.slice(1);
+
+        dataRows.forEach((line, index) => {
+            const parts = [];
+            let inQuote = false;
+            let currentPart = '';
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuote = !inQuote;
+                } else if (char === ',' && !inQuote) {
+                    parts.push(currentPart.trim());
+                    currentPart = '';
+                } else {
+                    currentPart += char;
+                }
+            }
+            parts.push(currentPart.trim()); // 마지막 부분 추가
+
+            // '항목명, 분야, 웹사이트 주소' 최소 3개 필드 확인
+            if (parts && parts.length >= 3) {
+                const itemName = parts[0].replace(/^"|"$/g, ''); // 따옴표 제거
+                const url = parts[2].replace(/^"|"$/g, ''); // 따옴표 제거
+
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    nodesData.push({
+                        id: `node-${index}`,
+                        name: itemName,
+                        url: url,
+                    });
+                } else {
+                    console.warn(`유효하지 않은 URL: ${url} (항목명: ${itemName})`);
+                }
+            } else {
+                console.warn('지명 CSV 파싱 오류 또는 데이터 부족: ', line, '파싱된 부분:', parts);
+            }
+        });
+
+        if (nodesData.length === 0) {
+            errorMessageDiv.textContent = '지명 CSV에서 유효한 데이터를 찾을 수 없습니다.';
+            return;
+        }
+
+        createGraphNodes();
+        updateGraphLines();
+    }
+
+    // --- 고지도 목록 CSV 파싱 ---
+    function parseMapsCSV(csvText) {
+        mapData = [];
+        // 오버레이 및 고지도 섹션 초기화
+        overlayPlaceListContentDiv.innerHTML = '<p class="overlay-no-maps-message">장소 검색 결과가 여기에 표시됩니다.</p>';
+        permanentMapListContentDiv.innerHTML = '<p class="no-maps-message">관련 고지도 목록이 여기에 표시됩니다. <br> 검색창에 지명을 입력하거나 그래프 노드를 클릭해보세요.</p>';
+        mapListSearchTermSpan.textContent = '';
+        overlaySelectedNameSpan.textContent = '';
+        overlaySearchResultDiv.textContent = '';
+        addressInput.value = ''; // 검색 입력 필드 초기화
+        placeListOverlay.classList.remove('visible'); // 파일 로드 시 오버레이 숨김
+        selectedAddressOutputDiv.classList.remove('visible'); // 주소 출력 영역 숨김
+        selectedAddressOutputDiv.textContent = '';
+
+        initKakaoMap(); // 맵 초기화 또는 재설정
+
+        const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+
+        if (lines.length <= 1) {
+            errorMessageDiv.textContent = '고지도 CSV 파일에 데이터가 없거나 헤더만 있습니다.';
+            return;
+        }
+
+        // 헤더 파싱 (따옴표 처리 포함)
+        const headers = [];
+        let inQuoteHeader = false;
+        let currentHeaderPart = '';
+        for (let i = 0; i < lines[0].length; i++) {
+            const char = lines[0][i];
+            if (char === '"') {
+                inQuoteHeader = !inQuoteHeader;
+            } else if (char === ',' && !inQuoteHeader) {
+                headers.push(currentHeaderPart.trim().replace(/^"|"$/g, ''));
+                currentHeaderPart = '';
+            } else {
+                currentHeaderPart += char;
+            }
+        }
+        headers.push(currentHeaderPart.trim().replace(/^"|"$/g, '')); // 마지막 헤더 추가
+
+        const dataRows = lines.slice(1);
+
+        dataRows.forEach(line => {
+            const parts = [];
+            let inQuote = false;
+            let currentPart = '';
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuote = !inQuote;
+                } else if (char === ',' && !inQuote) {
+                    parts.push(currentPart.trim().replace(/^"|"$/g, ''));
+                    currentPart = '';
+                } else {
+                    currentPart += char;
+                }
+            }
+            parts.push(currentPart.trim().replace(/^"|"$/g, '')); // 마지막 부분 추가
+
+            if (parts.length >= headers.length) {
+                const mapItem = {};
+                headers.forEach((header, index) => {
+                    mapItem[header] = parts[index];
+                });
+                mapData.push(mapItem);
+            } else {
+                console.warn('고지도 CSV 파싱 오류 또는 데이터 부족: ', line, '파싱된 부분:', parts);
+            }
+        });
+
+        if (mapData.length === 0) {
+            errorMessageDiv.textContent = '고지도 CSV에서 유효한 데이터를 찾을 수 없습니다.';
+        } else {
+            console.log('고지도 데이터 로드 완료:', mapData);
+            console.log('로드된 고지도 개수:', mapData.length);
+        }
+    }
+
+    // --- 그래프 노드 생성 (CSV 로드 시 최초 생성) ---
+    function createGraphNodes() {
+        document.querySelectorAll('.node').forEach(node => node.remove()); // 기존 노드 제거
+
+        const containerRect = container.getBoundingClientRect();
+        const nodeWidth = 150; 
+        const nodeHeight = 50; 
+        const padding = 30; 
+
+        // 노드 생성 영역을 중앙 60% 정도로 제한
+        const minX = containerRect.width * 0.2 + padding;
+        const maxX = containerRect.width * 0.8 - nodeWidth - padding;
+        const minY = containerRect.height * 0.2 + padding;
+        const maxY = containerRect.height * 0.8 - nodeHeight - padding;
+
+        nodesData.forEach((nodeData, index) => {
+            const nodeElement = document.createElement('a');
+            nodeElement.href = nodeData.url;
+            nodeElement.target = '_blank';
+            nodeElement.draggable = true;
+            nodeElement.className = 'node';
+            nodeElement.id = nodeData.id;
+            nodeElement.textContent = nodeData.name;
+
+            // 노드 초기 위치 설정 (중앙에 가깝게)
+            nodeData.x = Math.random() * (maxX - minX) + minX;
+            nodeData.y = Math.random() * (maxY - minY) + minY;
+
+            nodeElement.style.left = `${nodeData.x}px`;
+            nodeElement.style.top = `${nodeData.y}px`;
+
+            container.appendChild(nodeElement);
+
+            // 노드 클릭 시 장소 검색 함수 호출
+            nodeElement.addEventListener('click', (e) => {
+                // e.preventDefault(); // 링크 이동을 막으려면 주석 해제
+                searchAndDisplayPlaces(nodeData.name); // 해당 지명으로 장소 검색 및 오버레이 표시
+            });
+
+            // 드래그 이벤트 리스너
+            nodeElement.addEventListener('dragstart', (e) => {
+                draggedItem = e.target;
+                e.dataTransfer.setData('text/plain', draggedItem.id);
+                setTimeout(() => draggedItem.classList.add('dragging'), 0);
+            });
+            nodeElement.addEventListener('dragend', () => {
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging');
+                    const movedNodeData = nodesData.find(n => n.id === draggedItem.id);
+                    if (movedNodeData) {
+                        movedNodeData.x = parseFloat(draggedItem.style.left);
+                        movedNodeData.y = parseFloat(draggedItem.style.top);
+                    }
+                    draggedItem = null;
+                    updateGraphLines(); // 선 다시 그리기
+                }
+            });
+        });
+
+        // 드래그 앤 드롭 대상 컨테이너 이벤트 리스너
+        container.removeEventListener('dragover', handleDragOver);
+        container.removeEventListener('drop', handleDrop);
+        container.addEventListener('dragover', handleDragOver);
+        container.addEventListener('drop', handleDrop);
+    }
+
+    // --- 새로운 노드를 그래프에 추가하는 함수 ---
+    function addNodeToGraph(nodeName, nodeUrl = '#') {
+        // 이미 존재하는 노드인지 확인 (중복 생성 방지)
+        const existingNode = nodesData.find(node => node.name === nodeName);
+        if (existingNode) {
+            console.log(`노드 "${nodeName}"은(는) 이미 존재합니다.`, existingNode);
+            const existingNodeElement = document.getElementById(existingNode.id);
+            if (existingNodeElement) {
+                existingNodeElement.style.backgroundColor = '#f39c12'; // 강조 색상 변경
+                setTimeout(() => {
+                    existingNodeElement.style.backgroundColor = '#3498db'; // 원래 색상으로 복원
+                }, 1000);
+                existingNodeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
+        const containerRect = container.getBoundingClientRect();
+        const nodeWidth = 150;
+        const nodeHeight = 50;
+        const padding = 30;
+
+        const minX = containerRect.width * 0.2 + padding;
+        const maxX = containerRect.width * 0.8 - nodeWidth - padding;
+        const minY = containerRect.height * 0.2 + padding;
+        const maxY = containerRect.height * 0.8 - nodeHeight - padding;
+
+        const newNodeId = `node-${nodesData.length}`; // 새로운 고유 ID 생성
+
+        const newNodeData = {
+            id: newNodeId,
+            name: nodeName,
+            url: nodeUrl,
+            x: Math.random() * (maxX - minX) + minX,
+            y: Math.random() * (maxY - minY) + minY,
+        };
+        nodesData.push(newNodeData); // 데이터 배열에 추가
+
+        const nodeElement = document.createElement('a');
+        nodeElement.href = newNodeData.url;
+        nodeElement.target = '_blank';
+        nodeElement.draggable = true;
+        nodeElement.className = 'node';
+        nodeElement.id = newNodeId;
+        nodeElement.textContent = nodeName;
+
+        nodeElement.style.left = `${newNodeData.x}px`;
+        nodeElement.style.top = `${newNodeData.y}px`;
+
+        container.appendChild(nodeElement);
+
+        // 노드 클릭 시 장소 검색 함수 호출 (새로 추가된 노드에도 적용)
+        nodeElement.addEventListener('click', (e) => {
+            searchAndDisplayPlaces(newNodeData.name);
+        });
+
+        // 드래그 이벤트 리스너 (새로 추가된 노드에도 적용)
+        nodeElement.addEventListener('dragstart', (e) => {
+            draggedItem = e.target;
+            e.dataTransfer.setData('text/plain', draggedItem.id);
+            setTimeout(() => draggedItem.classList.add('dragging'), 0);
+        });
+        nodeElement.addEventListener('dragend', () => {
+            if (draggedItem) {
+                draggedItem.classList.remove('dragging');
+                const movedNodeData = nodesData.find(n => n.id === draggedItem.id);
+                if (movedNodeData) {
+                    movedNodeData.x = parseFloat(draggedItem.style.left);
+                    movedNodeData.y = parseFloat(draggedItem.style.top);
+                }
+                draggedItem = null;
+                updateGraphLines(); // 선 다시 그리기
+            }
+        });
+
+        if (nodesData.length > 1) {
+            const lastNode = nodesData[nodesData.length - 2]; 
+            drawLine(lastNode.id, newNodeId); 
+        } else {
+            container.removeEventListener('dragover', handleDragOver);
+            container.removeEventListener('drop', handleDrop);
+            container.addEventListener('dragover', handleDragOver);
+            container.addEventListener('drop', handleDrop);
+        }
+        
+        updateGraphLines(); // 모든 선을 다시 그립니다.
+        console.log(`노드 "${nodeName}"이(가) 그래프에 추가되었습니다.`, newNodeData);
+    }
+
+
+    // --- 드래그 앤 드롭 핸들러 ---
+    function handleDragOver(e) { e.preventDefault(); }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        if (!draggedItem) return;
+
+        const containerRect = container.getBoundingClientRect();
+        let x = e.clientX - containerRect.left;
+        let y = e.clientY - containerRect.top;
+
+        // 노드의 중앙에 마우스가 오도록 보정
+        x -= draggedItem.offsetWidth / 2;
+        y -= draggedItem.offsetHeight / 2;
+
+        // 컨테이너 경계 내로 제한
+        x = Math.max(0, Math.min(x, containerRect.width - draggedItem.offsetWidth));
+        y = Math.max(0, Math.min(y, containerRect.height - draggedItem.offsetHeight));
+
+        draggedItem.style.left = `${x}px`;
+        draggedItem.style.top = `${y}px`;
+
+        const movedNodeData = nodesData.find(n => n.id === draggedItem.id);
+        if (movedNodeData) {
+            movedNodeData.x = x;
+            movedNodeData.y = y;
+        }
+
+        draggedItem.classList.remove('dragging');
+        draggedItem = null;
+        updateGraphLines(); // 선 다시 그리기
+    }
+
+    // --- 선 그리기 ---
+    function drawLine(startNodeId, endNodeId) {
+        const startNode = document.getElementById(startNodeId);
+        const endNode = document.getElementById(endNodeId);
+        const lineId = `line-${startNodeId}-${endNodeId}`;
+        const arrowId = `arrow-${startNodeId}-${endNodeId}`;
+        let line = document.getElementById(lineId);
+        let arrow = document.getElementById(arrowId);
+
+        if (!line) { line = document.createElement('div'); line.className = 'line'; line.id = lineId; container.appendChild(line); }
+        if (!arrow) { arrow = document.createElement('div'); arrow.className = 'arrowhead'; arrow.id = arrowId; container.appendChild(arrow); }
+
+        if (!startNode || !endNode) {
+            line.style.display = 'none';
+            arrow.style.display = 'none';
+            return;
+        } else {
+            line.style.display = 'block';
+            arrow.style.display = 'block';
+        }
+
+        const startRect = startNode.getBoundingClientRect();
+        const endRect = endNode.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        const startX = (startRect.left + startRect.width / 2) - containerRect.left;
+        const startY = (startRect.top + startRect.height / 2) - containerRect.top;
+        const endX = (endRect.left + endRect.width / 2) - containerRect.left;
+        const endY = (endRect.top + endRect.height / 2) - containerRect.top;
+
+        const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+        const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+
+        line.style.width = `${length}px`;
+        line.style.left = `${startX}px`;
+        line.style.top = `${startY}px`;
+        line.style.transform = `rotate(${angle}deg)`;
+
+        arrow.style.left = `${endX}px`;
+        arrow.style.top = `${endY}px`;
+        arrow.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+    }
+
+    // 모든 선 다시 그리기
+    function updateGraphLines() {
+        document.querySelectorAll('.line, .arrowhead').forEach(el => el.remove());
+        // 모든 노드에 대해 선을 그리거나, 특정 규칙에 따라 선을 그릴 수 있음 (예: nodesData[i]와 nodesData[i+1] 연결)
+        for (let i = 0; i < nodesData.length - 1; i++) {
+            drawLine(nodesData[i].id, nodesData[i+1].id);
+        }
+    }
+
+    // --- 고지도 목록을 고정된 섹션에 표시하는 함수 ---
+    function displayMapsInPermanentSection(searchTerm) {
+        permanentMapListContentDiv.innerHTML = ''; // 기존 내용 지우기
+        mapListSearchTermSpan.textContent = searchTerm ? `(대상 지명: ${searchTerm})` : '';
+
+        const relevantMaps = mapData.filter(mapItem => 
+            mapItem['대상지명'] && mapItem['대상지명'].includes(searchTerm)
+        );
+
+        if (relevantMaps.length === 0) {
+            permanentMapListContentDiv.innerHTML = `<p class="no-maps-message">"${searchTerm}"과(와) 관련된 고지도를 찾을 수 없습니다.</p>`;
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.id = 'permanent-map-list-table';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>지명도</th>
+                    <th>국역</th>
+                    <th>원문</th>
+                    <th>소장처</th>
+                    <th>제작시기</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        `;
+        const tbody = table.querySelector('tbody');
+
+        relevantMaps.forEach(mapItem => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${mapItem['지명도'] || ''}</td>
+                <td>${mapItem['국역'] || ''}</td>
+                <td>${mapItem['원문'] || ''}</td>
+                <td>${mapItem['소장처'] || ''}</td>
+                <td>${mapItem['제작시기'] || ''}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        permanentMapListContentDiv.appendChild(table);
+    }
+
+    // --- 장소 검색 결과 목록을 오버레이에 표시하는 함수 ---
+    // --- 장소 검색 결과 목록을 오버레이에 표시하는 함수 ---
+function displayPlacesInOverlay(places) {
+    overlayPlaceListContentDiv.innerHTML = ''; // 기존 내용 지우기
+    if (places.length === 0) {
+        overlayPlaceListContentDiv.innerHTML = '<p class="overlay-no-maps-message">장소 검색 결과가 없습니다.</p>';
+        return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.className = 'place-list';
+
+    places.forEach((place, index) => {
+        const li = document.createElement('li'); // li 변수가 여기서 정의됩니다.
+        li.innerHTML = `
+            <span class="place-name">${index + 1}. ${place.place_name}</span><br>
+            <span class="place-address">${place.address_name || place.road_address_name || ''}</span>
+        `;
+        // 리스트 아이템 클릭 시 주소 출력 이벤트 추가 및 노드 생성 함수 호출
+        li.addEventListener('click', () => {
+            const address = place.address_name || place.road_address_name || '주소 정보 없음';
+            selectedAddressOutputDiv.textContent = `선택된 주소: ${address}`;
+            selectedAddressOutputDiv.classList.add('visible'); // 주소 출력 영역 표시
+
+            // ߌᴫ歫ܠ장소명으로 노드 생성
+            addNodeToGraph(place.place_name, place.place_url || '#');
+            
+            // 오버레이 닫기 (선택 사항)
+            placeListOverlay.classList.remove('visible'); 
+        });
+        ul.appendChild(li); // 각 li는 반복문 안에서 ul에 추가됩니다.
+    });
+    // 여기 있던 ul.appendChild(li); 줄을 삭제합니다.
+    overlayPlaceListContentDiv.appendChild(ul);
+}
+
+
+    // --- 키워드 검색 완료 시 호출되는 콜백 함수 입니다 (Places Service) ---
+    function placesSearchCB(data, status, pagination) {
+        removeMarkers(); // 기존 마커 모두 제거
+        infowindow.close(); // 기존 인포윈도우 닫기
+        selectedAddressOutputDiv.classList.remove('visible'); // 검색 완료 시 주소 출력 영역 숨김
+        selectedAddressOutputDiv.textContent = ''; // 내용 초기화
+
+        if (status === kakao.maps.services.Status.OK) {
+            // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기 위해 LatLngBounds 객체에 좌표를 추가
+            var bounds = new kakao.maps.LatLngBounds();
+
+            for (var i = 0; i < data.length; i++) {
+                displayMarker(data[i]);
+                bounds.extend(new kakao.maps.LatLng(data[i].y, data[i].x));
+            }
+
+            // 검색된 장소 위치를 기준으로 지도 범위를 재설정
+            map.setBounds(bounds);
+            overlaySearchResultDiv.textContent = `"${addressInput.value.trim()}" 장소 검색 성공 (${data.length}개 결과).`;
+            displayPlacesInOverlay(data); // 장소 목록 오버레이에 표시
+            displayMapsInPermanentSection(addressInput.value.trim()); // 고정된 고지도 목록 섹션에 표시
+            placeListOverlay.classList.add('visible'); // 장소 검색 결과 오버레이 표시 (고지도 목록은 별도로 관리)
+
+        } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+            overlaySearchResultDiv.textContent = '장소 검색 결과가 없습니다.';
+            overlayPlaceListContentDiv.innerHTML = '<p class="overlay-no-maps-message">장소 검색 결과가 없습니다.</p>';
+            displayMapsInPermanentSection(addressInput.value.trim()); // 고정된 고지도 목록 섹션에 표시
+            placeListOverlay.classList.add('visible'); // 장소 검색 결과 오버레이 표시
+            map.setCenter(new kakao.maps.LatLng(37.566826, 126.9786567)); // 검색 결과 없으면 서울 시청으로
+            map.setLevel(3);
+        } else if (status === kakao.maps.services.Status.ERROR) {
+            overlaySearchResultDiv.textContent = '장소 검색 중 오류가 발생했습니다.';
+            overlayPlaceListContentDiv.innerHTML = '<p class="overlay-no-maps-message">장소 검색 중 오류가 발생했습니다.</p>';
+            displayMapsInPermanentSection(addressInput.value.trim()); // 고정된 고지도 목록 섹션에 표시
+            placeListOverlay.classList.add('visible'); // 장소 검색 결과 오버레이 표시
+            map.setCenter(new kakao.maps.LatLng(37.566826, 126.9786567));
+            map.setLevel(3);
+        }
+    }
+
+    // 지도에 마커를 표시하는 함수
+    function displayMarker(place) {
+        // 마커를 생성하고 지도에 표시
+        var marker = new kakao.maps.Marker({
+            map: map,
+            position: new kakao.maps.LatLng(place.y, place.x)
+        });
+
+        // 마커에 클릭 이벤트를 등록
+        kakao.maps.event.addListener(marker, 'click', function() {
+            // 마커를 클릭하면 장소명이 인포윈도우에 표출
+            infowindow.setContent('<div style="padding:5px;font-size:12px;">' + place.place_name + '</div>');
+            infowindow.open(map, marker);
+            
+            // 마커 클릭 시에도 주소 출력 영역에 표시
+            const address = place.address_name || place.road_address_name || '주소 정보 없음';
+            selectedAddressOutputDiv.textContent = `선택된 주소: ${address}`;
+            selectedAddressOutputDiv.classList.add('visible');
+        });
+
+        markers.push(marker); // 생성된 마커를 배열에 추가하여 관리
+    }
+
+    // --- 주소/지명 검색 기능 (Places Search를 사용) ---
+    searchAddressBtn.addEventListener('click', () => {
+        const searchTerm = addressInput.value.trim();
+        searchAndDisplayPlaces(searchTerm);
+    });
+    addressInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const searchTerm = addressInput.value.trim();
+            searchAndDisplayPlaces(searchTerm);
+        }
+    });
+
+    function searchAndDisplayPlaces(searchTerm) {
+        if (!searchTerm) {
+            // 검색어가 없으면 오버레이 및 고지도 섹션 초기화 및 숨김
+            overlaySearchResultDiv.textContent = '주소 또는 지명을 입력해주세요.';
+            overlayPlaceListContentDiv.innerHTML = '<p class="overlay-no-maps-message">장소 검색 결과가 여기에 표시됩니다.</p>';
+            permanentMapListContentDiv.innerHTML = '<p class="no-maps-message">관련 고지도 목록이 여기에 표시됩니다. <br> 검색창에 지명을 입력하거나 그래프 노드를 클릭해보세요.</p>';
+            mapListSearchTermSpan.textContent = '';
+            placeListOverlay.classList.remove('visible');
+            removeMarkers(); // 마커 제거
+            infowindow.close(); // 인포윈도우 닫기
+            selectedAddressOutputDiv.classList.remove('visible'); // 주소 출력 영역 숨김
+            selectedAddressOutputDiv.textContent = '';
+            if (map) { // 지도 초기 위치로
+                map.setCenter(new kakao.maps.LatLng(37.566826, 126.9786567));
+                map.setLevel(3);
+            }
+            return;
+        }
+
+        if (!ps) { // Places Service 객체가 없으면 오류
+            overlaySearchResultDiv.textContent = '카카오맵 장소 검색 객체가 초기화되지 않았습니다.';
+            console.error('Places service not initialized!');
+            return;
+        }
+
+        overlaySelectedNameSpan.textContent = searchTerm; // 장소 검색 오버레이 제목에 검색어 표시
+        overlaySearchResultDiv.textContent = '장소 검색 중...';
+        overlayPlaceListContentDiv.innerHTML = '<p class="overlay-no-maps-message">검색 중...</p>';
+        permanentMapListContentDiv.innerHTML = '<p class="no-maps-message">고지도 목록 검색 중...</p>'; // 고지도 섹션도 업데이트
+        mapListSearchTermSpan.textContent = `(대상 지명: ${searchTerm})`; // 고지도 섹션 제목 업데이트
+        placeListOverlay.classList.add('visible'); // 장소 검색 결과 오버레이 표시
+        selectedAddressOutputDiv.classList.remove('visible'); // 새 검색 시작 시 주소 출력 영역 숨김
+        selectedAddressOutputDiv.textContent = '';
+
+
+        // 키워드로 장소를 검색 요청
+        ps.keywordSearch(searchTerm, placesSearchCB);
+    }
+
+    // 윈도우 리사이즈 시 그래프 선 다시 그리기 및 지도 크기 조정
+    window.addEventListener('resize', () => {
+        updateGraphLines();
+        if (map) {
+            map.relayout(); // 지도가 컨테이너에 맞게 재배치되도록
+        }
+    });
+
+    // 페이지 로드 시 카카오맵 초기화
+    initKakaoMap();
+</script>
+</body>
+</html>

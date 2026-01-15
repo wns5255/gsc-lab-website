@@ -1,0 +1,429 @@
+/* 기본 HTML 및 폰트 스타일 */
+body {
+    font-family: 'Malgun Gothic', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+    background-color: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-top: 0; /* 상단 패딩 제거 */
+    padding-bottom: 20px;
+    box-sizing: border-box;
+}
+
+/* --- 카카오맵 섹션 및 오버레이 스타일 (이 부분은 거의 변경 없음) --- */
+.map-section {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+    height: 700px; /* 지도 높이 유지 */
+    background: #fff;
+    border-radius: 0 0 8px 8px; /* 상단 모서리 라운드 없앰 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15); /* 상단 그림자 강조 */
+    margin-top: 0; /* 맨 위로 붙도록 마진 제거 */
+    margin-bottom: 20px; /* 그래프와의 간격 유지 */
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+#kakao-map-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 0 0 5px 5px; /* 상단 모서리 라운드 없앰 */
+}
+
+/* 주소/지명 검색 UI (지도 위에 오버레이) */
+.address-search-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: calc(100% - 40px);
+    max-width: 400px;
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 10;
+    gap: 10px;
+    box-sizing: border-box;
+}
+.address-search-container input[type="text"] {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.address-search-container button {
+    padding: 8px 12px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease-in-out;
+}
+.address-search-container button:hover {
+    background-color: #2980b9;
+}
+
+/* 장소 검색 결과 오버레이 창 (고지도 목록은 분리됨) */
+#place-list-overlay { /* ID 변경됨 */
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    width: calc(100% - 40px);
+    max-width: 400px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    z-index: 9;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    box-sizing: border-box;
+    max-height: calc(100% - 100px); /* 지도 높이에 맞춰 최대 높이 설정 */
+}
+#place-list-overlay.visible {
+    display: flex;
+}
+#place-list-overlay h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 1.2em;
+    text-align: center;
+}
+#place-list-overlay .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #555;
+}
+#place-list-overlay .close-btn:hover {
+    color: #e74c3c;
+}
+#overlay-search-result {
+    font-size: 0.9em;
+    color: #e74c3c;
+    margin-bottom: 10px;
+}
+/* 장소 검색 결과 목록 스타일 */
+#overlay-place-list-content-container {
+    max-height: 400px; /* 스크롤 높이 제한 - 오버레이 전체 높이에 맞춰 조절 */
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+#overlay-place-list-content-container h4 {
+    margin: 10px;
+    color: #333;
+    font-size: 1.1em;
+}
+.place-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.place-list li {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9em;
+    cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+}
+.place-list li:last-child {
+    border-bottom: none;
+}
+.place-list li:hover {
+    background-color: #eef; /* 호버 효과 */
+}
+.place-name {
+    font-weight: bold;
+    color: #333;
+}
+.place-address {
+    color: #666;
+    font-size: 0.85em;
+}
+
+/* 지도 아래 선택된 주소 출력 영역 */
+#selected-address-output {
+    position: absolute;
+    bottom: 20px; /* 지도 하단으로부터의 거리 */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1.1em;
+    text-align: center;
+    max-width: 90%;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    z-index: 10;
+    display: none; /* 초기에는 숨김 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#selected-address-output.visible {
+    display: block;
+}
+
+
+/* --- 그래프 컨테이너 스타일 --- */
+.graph-container {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+    height: 500px; /* 고정된 높이 */
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    margin: 20px 20px 0 20px; /* 고지도 섹션 위에 오도록 아래 마진 없앰 */
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.graph-container h1 {
+    position: absolute;
+    top: 20px;
+    width: calc(100% - 60px);
+    text-align: center;
+    color: #2c3e50;
+    font-size: 2em;
+    z-index: 10;
+}
+.node {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: transform 0.1s ease-in-out, background-color 0.2s ease-in-out;
+    text-decoration: none;
+    position: absolute;
+    cursor: grab;
+    z-index: 5;
+    min-width: 80px;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+}
+.node:hover {
+    transform: scale(1.05);
+    background-color: #2980b9;
+}
+.node.dragging {
+    opacity: 0.7;
+    cursor: grabbing;
+}
+
+.line {
+    position: absolute;
+    background-color: #27ae60;
+    height: 4px;
+    z-index: 1;
+    transform-origin: 0 50%;
+    pointer-events: none;
+}
+.arrowhead {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 12px solid #27ae60;
+    transform: translateY(-50%);
+    z-index: 2;
+    pointer-events: none;
+}
+.error-message {
+    color: #e74c3c;
+    font-weight: bold;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* --- 고지도 목록 섹션 스타일 추가 --- */
+.map-list-section {
+    width: 90%;
+    max-width: 1000px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    margin: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+.map-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 제목 중앙 정렬 */
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+.map-list-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+}
+#mapListSearchTerm {
+    font-size: 1em;
+    color: #555;
+    font-weight: normal;
+}
+#permanent-map-list-content {
+    max-height: 300px; /* 고지도 테이블 최대 높이 설정 */
+    overflow-y: auto; /* 내용이 많아지면 스크롤바 생성 */
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 5px;
+}
+#permanent-map-list-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#permanent-map-list-table th, #permanent-map-list-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-size: 0.85em;
+}
+#permanent-map-list-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+#permanent-map-list-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+#permanent-map-list-table tbody tr:hover {
+    background-color: #f0f0f0;
+}
+.no-maps-message {
+    text-align: center;
+    color: #777;
+    padding: 20px;
+    font-size: 0.95em;
+}
+
+
+/* --- 파일 업로드 내비게이션 바 스타일 --- */
+#fileUploadNavbar {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 400px;
+    background: #2c3e50;
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    transition: transform 0.3s ease-out, width 0.3s ease-out;
+    transform: translateX(calc(100% - 60px)); /* 초기에는 버튼만 보이게 */
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+#fileUploadNavbar.open {
+    transform: translateX(0); /* 열리면 전체가 보이게 */
+    width: 380px; /* 열렸을 때의 너비 */
+}
+#toggleNavbarBtn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1.1em;
+    cursor: pointer;
+    border-radius: 10px 0 0 10px; /* 우측만 둥글게 */
+    position: absolute;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+    transition: background-color 0.2s ease-in-out;
+}
+#toggleNavbarBtn:hover {
+    background-color: #2980b9;
+}
+.navbar-content {
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.3s ease-in;
+    pointer-events: none; /* 클릭 이벤트 비활성화 */
+    width: 100%;
+}
+#fileUploadNavbar.open .navbar-content {
+    opacity: 1;
+    pointer-events: auto; /* 클릭 이벤트 활성화 */
+}
+.navbar-content .file-input-group {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #444;
+    text-align: right;
+}
+.navbar-content .file-input-group:last-child {
+    border-bottom: none;
+}
+.navbar-content .file-input-group p {
+    font-size: 0.9em;
+    margin: 0 0 5px 0;
+    color: #ddd;
+}
+.navbar-content #nodeFileInput, .navbar-content #mapFileInput {
+    background-color: #3e5060;
+    color: white;
+    border: 1px solid #555;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 0.85em;
+    cursor: pointer;
+}
+/* 파일 입력 버튼 스타일 */
+.navbar-content #nodeFileInput::-webkit-file-upload-button,
+.navbar-content #mapFileInput::-webkit-file-upload-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.navbar-content #nodeFileInput::-webkit-file-upload-button:hover,
+.navbar-content #mapFileInput::-webkit-file-upload-button:hover {
+    background-color: #2980b9;
+}
+.navbar-content #errorMessage {
+    font-size: 0.8em;
+    margin-top: 10px;
+    color: #f1c40f;
+}
