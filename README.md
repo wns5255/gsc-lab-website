@@ -13,8 +13,7 @@
 
 ## 📸 Project Showcase
 <!-- 실제 배포 URL/스크린샷이 있으면 아래를 교체하세요 -->
-<img width="1080" height="420" alt="image" src="https://github.com/user-attachments/assets/REPLACE_WITH_YOUR_ASSET_1" />
-<img width="1080" height="420" alt="image" src="https://github.com/user-attachments/assets/REPLACE_WITH_YOUR_ASSET_2" />
+<img width="1781" height="869" alt="image" src="https://github.com/user-attachments/assets/b71682a6-3164-43ef-acb1-526e2a0a14b2" />
 
 <br/>
 
